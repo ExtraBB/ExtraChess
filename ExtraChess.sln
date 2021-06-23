@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31410.414
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ExtraChess", "ExtraChess\ExtraChess.csproj", "{7EBEFF4D-C6CB-4520-BB87-7C354BE92545}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExtraChessUI", "ExtraChessUI\ExtraChessUI.csproj", "{7CDBE244-4EBB-4811-ACE5-3FA8F18A5599}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7EBEFF4D-C6CB-4520-BB87-7C354BE92545}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EBEFF4D-C6CB-4520-BB87-7C354BE92545}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EBEFF4D-C6CB-4520-BB87-7C354BE92545}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EBEFF4D-C6CB-4520-BB87-7C354BE92545}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7CDBE244-4EBB-4811-ACE5-3FA8F18A5599}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CDBE244-4EBB-4811-ACE5-3FA8F18A5599}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CDBE244-4EBB-4811-ACE5-3FA8F18A5599}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CDBE244-4EBB-4811-ACE5-3FA8F18A5599}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4BFABAE9-DD13-45A8-82BC-7104C8A363FB}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,24 @@
+﻿<UserControl x:Class="ExtraChessUI.Components.BoardControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:ExtraChessUI.Components"
+             mc:Ignorable="d" 
+             d:DesignHeight="512" d:DesignWidth="512">
+    <ItemsControl ItemsSource="{Binding BoardItems}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <UniformGrid Columns="8" FlowDirection="RightToLeft" />
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Grid Background="{Binding Background}" MouseUp="Square_MouseUp" Tag="{Binding}">
+                    <Image Source="{Binding Image}" />
+                    <Ellipse Width="20" Height="20" Fill="#6666" Visibility="{Binding MoveVisibility}" />
+                </Grid>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

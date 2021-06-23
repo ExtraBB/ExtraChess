@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>ExtraChessUI</RootNamespace>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Resources\bbishop.png" />
+    <None Remove="Resources\bking.png" />
+    <None Remove="Resources\bknight.png" />
+    <None Remove="Resources\bpawn.png" />
+    <None Remove="Resources\bqueen.png" />
+    <None Remove="Resources\brook.png" />
+    <None Remove="Resources\wbishop.png" />
+    <None Remove="Resources\wking.png" />
+    <None Remove="Resources\wknight.png" />
+    <None Remove="Resources\wpawn.png" />
+    <None Remove="Resources\wqueen.png" />
+    <None Remove="Resources\wrook.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ExtraChess\ExtraChess.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\bbishop.png" />
+    <Resource Include="Resources\bking.png" />
+    <Resource Include="Resources\bknight.png" />
+    <Resource Include="Resources\bpawn.png" />
+    <Resource Include="Resources\bqueen.png" />
+    <Resource Include="Resources\brook.png" />
+    <Resource Include="Resources\wbishop.png" />
+    <Resource Include="Resources\wking.png" />
+    <Resource Include="Resources\wknight.png" />
+    <Resource Include="Resources\wpawn.png" />
+    <Resource Include="Resources\wqueen.png" />
+    <Resource Include="Resources\wrook.png" />
+  </ItemGroup>
+
+</Project>
