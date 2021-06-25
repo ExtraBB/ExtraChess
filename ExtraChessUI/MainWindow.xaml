@@ -20,7 +20,7 @@
                 <RowDefinition Height="16"/>
                 <RowDefinition Height="512"/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" Content="Start Game" Width="100" Height="32" FontSize="14" Click="StartGame_Click" />
+            <Button Grid.Row="0" Content="Start Game" Width="100" FontSize="14" Click="StartGame_Click" />
             <Border Grid.Row="2" BorderBrush="Gray">
                 <components:BoardControl x:Name="BoardControl" Grid.Row="2" />
             </Border>
@@ -34,9 +34,15 @@
                 <RowDefinition Height="512"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+                <ComboBox Name="PerftBoardSetting" Margin="0,0,16,0" FontSize="14">
+                    <ComboBoxItem Name="CurrentBoard" Content="Current Board" IsSelected="True" />
+                    <ComboBoxItem Name="RegularBoard" Content="Regular Board" />
+                    <ComboBoxItem Name="Kiwipete" Content="Kiwipete" />
+                    <ComboBoxItem Name="Position3" Content="Position3" />
+                </ComboBox>
                 <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
-                <Button Content="Perft" Click="Perft_Click" Width="100" Height="32" Margin="16,0" FontSize="14" />
-                <Button Content="Divide" Width="100" Height="32" FontSize="14" />
+                <Button Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" />
+                <Button Content="Divide" Click="Divide_Click" Width="100" FontSize="14" />
             </StackPanel>
             <Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" Padding="4">
                 <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">

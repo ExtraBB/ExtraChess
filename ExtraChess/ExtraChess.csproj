@@ -4,6 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>ExtraChess</RootNamespace>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
 </Project>
