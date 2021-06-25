@@ -10,7 +10,7 @@ namespace ExtraChess.UCI
 {
     public static class UCIProcessor
     {
-        public static string ProcessInstruction(string instruction)
+        public static void ProcessInstruction(string instruction)
         {
             if(string.IsNullOrEmpty(instruction))
             {
@@ -25,23 +25,28 @@ namespace ExtraChess.UCI
             {
                 case "uci":
                     {
-                        return Uci();
+                        PrintUCI();
+						break;
                     }
                 case "debug":
                     {
-                        throw new NotImplementedException();
+						EngineOptions.Debug(options);
+						break;
                     }
                 case "isready":
                     {
-                        throw new NotImplementedException();
+						EngineState.IsReady();
+						break;
                     }
                 case "setoption":
                     {
-                        throw new NotImplementedException();
+						EngineOptions.SetOption(options);
+						break;
                     }
                 case "register":
                     {
-                        throw new NotImplementedException();
+						EngineOptions.Register(options);
+						break;
                     }
                 case "ucinewgame":
                     {
@@ -65,13 +70,14 @@ namespace ExtraChess.UCI
                     }
                 case "help":
                     {
-                        return HelpString;
+                        Console.Write(HelpString);
+						break;
                     }
                 case "quit":
                     {
                         Environment.Exit(0);
-                        return "Succesfully exited the application.";
-                    }
+						break;
+					}
                 default:
                     {
                         throw new UnknownCommandException(command);
@@ -79,7 +85,7 @@ namespace ExtraChess.UCI
             }
         }
 
-		private static string Uci()
+		private static void PrintUCI()
         {
 			Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
 
@@ -92,7 +98,7 @@ namespace ExtraChess.UCI
 
 			stringBuilder.AppendLine("uciok");
 
-			return stringBuilder.ToString();
+			Console.Write(stringBuilder.ToString());
 		}
 
 		private static string HelpString =

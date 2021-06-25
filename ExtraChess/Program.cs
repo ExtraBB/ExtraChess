@@ -15,9 +15,7 @@ namespace ExtraChess
             {
                 try
                 {
-                    string line = Console.ReadLine();
-                    string result = UCIProcessor.ProcessInstruction(line);
-                    Console.Write(result);
+                    UCIProcessor.ProcessInstruction(Console.ReadLine());
                 }
                 catch (UnknownCommandException ex)
                 {
@@ -26,6 +24,10 @@ namespace ExtraChess
                 catch (NoCommandException)
                 {
                     Console.WriteLine($"No command entered.");
+                }
+                catch (InvalidArgumentsException)
+                {
+                    Console.WriteLine($"Invalid arguments. Enter the 'help' command to view the manual.");
                 }
                 catch (Exception ex)
                 {
