@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace ExtraChess.UCI
             {
                 case "uci":
                     {
-                        throw new NotImplementedException();
+                        return Uci();
                     }
                 case "debug":
                     {
@@ -77,6 +78,22 @@ namespace ExtraChess.UCI
                     }
             }
         }
+
+		private static string Uci()
+        {
+			Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+			StringBuilder stringBuilder = new StringBuilder();
+
+			stringBuilder.AppendLine($"id name ExtraChess v{engineVersion.Major}.{engineVersion.Minor}");
+			stringBuilder.AppendLine($"id author Bruno Carvalhal");
+
+			// TODO: Print options here
+
+			stringBuilder.AppendLine("uciok");
+
+			return stringBuilder.ToString();
+		}
 
 		private static string HelpString =
 @"	* uci
