@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ExtraChess.Models;
-using ExtraChess.Services;
+using ExtraChess.Moves;
 
 namespace ExtraChessUI.Models
 {
@@ -39,7 +39,7 @@ namespace ExtraChessUI.Models
 
         private static void RefreshPossibleMoves()
         {
-            PossibleMoves = MoveService.GetAllPossibleMoves(Board);
+            PossibleMoves = MoveGenerator.GenerateMoves(Board);
         }
 
         public static void CheckForEnd() 

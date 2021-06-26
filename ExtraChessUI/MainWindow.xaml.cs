@@ -1,5 +1,5 @@
 ﻿using ExtraChess.Models;
-using ExtraChess.Services;
+using ExtraChess.Moves;
 using ExtraChessUI.Models;
 using System;
 using System.Collections.ObjectModel;
@@ -93,7 +93,7 @@ namespace ExtraChessUI
             {
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                ulong perftValue = MoveService.PerftConcurrent(board, perftSetting);
+                ulong perftValue = MoveGenerator.PerftConcurrent(board, perftSetting);
 
                 this.Dispatcher.Invoke(() =>
                 {
@@ -112,13 +112,13 @@ namespace ExtraChessUI
             int perftSetting = (int)PerftDepth.Value;
             Board board = GetBoardForSetting();
 
-            var moves = MoveService.GetAllPossibleMoves(board).OrderBy(move => ((Square)move.From).ToString());
+            var moves = MoveGenerator.GenerateMoves(board).OrderBy(move => ((Square)move.From).ToString());
 
             Task.Run(() =>
             {
                 Parallel.ForEach(moves, m =>
                 {
-                    var perft = MoveService.Perft(board.PreviewMove(m), perftSetting);
+                    var perft = MoveGenerator.Perft(board.PreviewMove(m), perftSetting);
                     if (perft != 0)
                     {
                         this.Dispatcher.Invoke(() =>

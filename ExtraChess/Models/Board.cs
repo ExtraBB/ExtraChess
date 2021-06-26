@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExtraChess.Moves;
-using ExtraChess.Services;
 
 namespace ExtraChess.Models
 {
@@ -89,11 +88,16 @@ namespace ExtraChess.Models
         // Track en passent
         public Square EnPassent { get; set; } = Square.None;
 
+        // Track current player
         public Player CurrentPlayer { get; set; } = Player.White;
+
+        // Track move counts
+        public int HalfMoves { get; set; } = 0;
+        public int FullMoves { get; set; } = 1;
 
         public Board(string fen = StartPos)
         {
-            MagicService.Initialize();
+            Magics.Initialize();
             UpdateFromFEN(fen);
         }
 
@@ -265,7 +269,18 @@ namespace ExtraChess.Models
                     }
             }
 
+            bool isCapture = (to & (CurrentPlayer == Player.White ? BlackPieces : WhitePieces)) != 0;
+            if(move.Piece == Piece.WPawn || move.Piece == Piece.BPawn || isCapture)
+            {
+                HalfMoves = 0;
+            }
+            else
+            {
+                HalfMoves++;
+            }
+
             CurrentPlayer = (Player)(-(int)CurrentPlayer);
+            FullMoves++;
         }
 
         public Board PreviewMove(Move move)
@@ -339,7 +354,8 @@ namespace ExtraChess.Models
                     EnPassent = (Square)Enum.Parse(typeof(Square), split[3].ToUpper());
                 }
 
-                // TODO: move counts
+                HalfMoves = int.Parse(split[4]);
+                FullMoves = int.Parse(split[5]);
 
                 return true;
             }
@@ -428,8 +444,10 @@ namespace ExtraChess.Models
             sb.Append(EnPassent != Square.None ? EnPassent.ToString().ToLower() : '-');
             sb.Append(' ');
 
-            // TODO: implement move counts
-            sb.Append("0 1");
+            // Append move counts
+            sb.Append(HalfMoves);
+            sb.Append(' ');
+            sb.Append(FullMoves);
 
             return sb.ToString();
         }

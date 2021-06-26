@@ -1,4 +1,3 @@
-using ExtraChess.Services;
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
@@ -16,8 +15,8 @@ namespace ExtraChess.Moves
             {
                 if(board.WBishops.NthBitSet(i))
                 {
-                    UInt64 attacks = MagicService.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.WBishop));
+                    UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.WBishop));
                 }
             }
 
@@ -32,8 +31,8 @@ namespace ExtraChess.Moves
             {
                 if(board.BBishops.NthBitSet(i))
                 {
-                    UInt64 attacks = MagicService.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.BBishop));
+                    UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.BBishop));
                 }
             }
 
@@ -48,8 +47,8 @@ namespace ExtraChess.Moves
             {
                 if(board.WRooks.NthBitSet(i))
                 {
-                    UInt64 attacks = MagicService.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.WRook));
+                    UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.WRook));
                 }
             }
 
@@ -64,8 +63,8 @@ namespace ExtraChess.Moves
             {
                 if(board.BRooks.NthBitSet(i))
                 {
-                    UInt64 attacks = MagicService.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.BRook));
+                    UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.BRook));
                 }
             }
 
@@ -80,9 +79,9 @@ namespace ExtraChess.Moves
             {
                 if(board.WQueen.NthBitSet(i))
                 {
-                    UInt64 bishopAttacks = MagicService.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    UInt64 rookAttacks = MagicService.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
+                    UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
+                    UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
                     break;
                 }
             }
@@ -98,9 +97,9 @@ namespace ExtraChess.Moves
             {
                 if(board.BQueen.NthBitSet(i))
                 {
-                    UInt64 bishopAttacks = MagicService.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    UInt64 rookAttacks = MagicService.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
+                    UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
+                    UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
                     break;
                 }
             }
@@ -115,7 +114,7 @@ namespace ExtraChess.Moves
             {
                 if(bishops.NthBitSet(i))
                 {
-                    allAttacks |= MagicService.GetBishopAttacks(occupied, i) & ~ownPieces;
+                    allAttacks |= Magics.GetBishopAttacks(occupied, i) & ~ownPieces;
                 }
             }
             return allAttacks;
@@ -128,7 +127,7 @@ namespace ExtraChess.Moves
             {
                 if(rooks.NthBitSet(i))
                 {
-                    allAttacks |= MagicService.GetRookAttacks(occupied, i) & ~ownPieces;
+                    allAttacks |= Magics.GetRookAttacks(occupied, i) & ~ownPieces;
                 }
             }
             return allAttacks;
@@ -141,8 +140,8 @@ namespace ExtraChess.Moves
             {
                 if(queen.NthBitSet(i))
                 {
-                    allAttacks |= MagicService.GetRookAttacks(occupied, i) & ~ownPieces;
-                    allAttacks |= MagicService.GetBishopAttacks(occupied, i) & ~ownPieces;
+                    allAttacks |= Magics.GetRookAttacks(occupied, i) & ~ownPieces;
+                    allAttacks |= Magics.GetBishopAttacks(occupied, i) & ~ownPieces;
                     break;
                 }
             }

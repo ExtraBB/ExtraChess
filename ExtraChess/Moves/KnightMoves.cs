@@ -1,5 +1,4 @@
 using ExtraChess.Models;
-using ExtraChess.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +23,7 @@ namespace ExtraChess.Moves
                 if(board.BKnights.NthBitSet(i))
                 {
                     UInt64 attacks = KnightMovesLookupTable[i] & ~board.BlackPieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.BKnight));
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.BKnight));
                 }
             }
 
@@ -45,7 +44,7 @@ namespace ExtraChess.Moves
                 if(board.WKnights.NthBitSet(i))
                 {
                     UInt64 attacks = KnightMovesLookupTable[i] & ~board.WhitePieces;
-                    moves = moves.Concat(MoveService.CreateMovesFromBitboard(attacks, i, Piece.WKnight));
+                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.WKnight));
                 }
             }
 

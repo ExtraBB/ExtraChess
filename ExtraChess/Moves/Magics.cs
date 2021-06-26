@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using ExtraChess.Models;
 
-namespace ExtraChess.Services
+namespace ExtraChess.Moves
 {
     public struct SMagic {
         public UInt64 Mask { get; set; }  // to mask relevant squares of both lines (no outer squares)
         public UInt64 Magic { get; set; } // magic 64-bit factor
     };
 
-    public static class MagicService
+    public static class Magics
     {
         private static bool initialized = false;
         private static UInt64[,] BishopAttacks = new UInt64[64, 512];

@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using ExtraChess.Models;
 using ExtraChess.Moves;
 
-namespace ExtraChess.Services
+namespace ExtraChess.Moves
 {
-    public static class MoveService
+    public static class MoveGenerator
     {
 
         public static IEnumerable<Move> CreateMovesFromBitboard(UInt64 bitboard, int position, Piece piece)
@@ -23,7 +23,7 @@ namespace ExtraChess.Services
             return moves;
         }
 
-        public static IEnumerable<Move> GetAllPossibleMoves(Board board)
+        public static IEnumerable<Move> GenerateMoves(Board board)
         {
             if (board.CurrentPlayer == Player.Black)
             {
@@ -59,7 +59,7 @@ namespace ExtraChess.Services
 
         public static ulong Perft(Board board, int depth)
         {
-            var moves = GetAllPossibleMoves(board).ToArray();
+            var moves = GenerateMoves(board).ToArray();
 
             if (depth == 1)
             {
@@ -77,7 +77,7 @@ namespace ExtraChess.Services
 
         public static ulong PerftConcurrent(Board board, int depth)
         {
-            var moves = GetAllPossibleMoves(board).ToArray();
+            var moves = GenerateMoves(board).ToArray();
 
             if (depth == 1)
             {
