@@ -2,8 +2,11 @@
 using ExtraChess.Services;
 using ExtraChessUI.Services;
 using System;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,16 +18,45 @@ namespace ExtraChessUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        public ObservableCollection<string> EngineOptions { get; set; } = new ObservableCollection<string>();
         public MainWindow()
         {
+            DataContext = this;
             InitializeComponent();
             GameService.BoardChanged += GameService_BoardChanged;
+            InitializeEngineComboBox();
+        }
+
+        private void InitializeEngineComboBox()
+        {
+            foreach(string path in Directory.GetFiles("."))
+            {
+                if(Path.GetExtension(path).ToLower().Equals(".exe"))
+                {
+                    string name = Path.GetFileNameWithoutExtension(path);
+                    if (name != Assembly.GetExecutingAssembly().GetName().Name)
+                    {
+                        EngineOptions.Add(Path.GetFileNameWithoutExtension(path));
+                    }
+                }
+            }
+
+            if(EngineOptions.Count > 0)
+            {
+                EngineComboBox.SelectedItem = EngineOptions[0];
+            }
         }
 
         private void StartGame_Click(object sender, RoutedEventArgs e)
         {
             BoardControl.ResetBoard();
             GameService.StartGame();
+        }
+
+        private void ResetGame_Click(object sender, RoutedEventArgs e)
+        {
+            BoardControl.ResetBoard();
+            GameService.ClearGame();
         }
 
         private void Perft_Click(object sender, RoutedEventArgs e)
@@ -106,6 +138,11 @@ namespace ExtraChessUI
         private void GameService_BoardChanged(Board board)
         {
             BoardControl.UpdateFromBoard(board);
+        }
+
+        private void EngineComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
         }
     }
 }
