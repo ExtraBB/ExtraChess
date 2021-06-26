@@ -305,6 +305,15 @@ namespace ExtraChess.Models
                 // Set player
                 CurrentPlayer = split[1] == "w" ? Player.White : Player.Black;
 
+                // Set castling rights
+                foreach(char c in split[2])
+                {
+                    if (c == 'K') WCanCastleKingSide = true;
+                    if (c == 'Q') WCanCastleQueenSide = true;
+                    if (c == 'k') BCanCastleKingSide = true;
+                    if (c == 'q') BCanCastleQueenSide = true;
+                }
+
                 // TODO: other FEN parts
 
                 return true;
