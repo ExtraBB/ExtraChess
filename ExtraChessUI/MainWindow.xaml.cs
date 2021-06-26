@@ -19,6 +19,7 @@ namespace ExtraChessUI
     public partial class MainWindow : Window
     {
         public ObservableCollection<string> EngineOptions { get; set; } = new ObservableCollection<string>();
+        public string FEN { get; set; } = "FEN string here";
         public MainWindow()
         {
             DataContext = this;
@@ -29,9 +30,9 @@ namespace ExtraChessUI
 
         private void InitializeEngineComboBox()
         {
-            foreach(string path in Directory.GetFiles("."))
+            foreach (string path in Directory.GetFiles("."))
             {
-                if(Path.GetExtension(path).ToLower().Equals(".exe"))
+                if (Path.GetExtension(path).ToLower().Equals(".exe"))
                 {
                     string name = Path.GetFileNameWithoutExtension(path);
                     if (name != Assembly.GetExecutingAssembly().GetName().Name)
@@ -41,7 +42,7 @@ namespace ExtraChessUI
                 }
             }
 
-            if(EngineOptions.Count > 0)
+            if (EngineOptions.Count > 0)
             {
                 EngineComboBox.SelectedItem = EngineOptions[0];
             }
@@ -59,9 +60,17 @@ namespace ExtraChessUI
             GameService.ClearGame();
         }
 
+        private void LoadFen_Click(object sender, RoutedEventArgs e)
+        {
+            BoardControl.ResetBoard();
+            GameService.ClearGame();
+
+            // TODO: Load FEN
+        }
+
         private void Perft_Click(object sender, RoutedEventArgs e)
         {
-            if(GameService.CurrentGame == null)
+            if (GameService.CurrentGame == null)
             {
                 GameService.StartGame();
             }
@@ -125,7 +134,7 @@ namespace ExtraChessUI
 
         private Board GetBoardForSetting()
         {
-            switch((PerftBoardSetting.SelectedItem as ComboBoxItem).Name)
+            switch ((PerftBoardSetting.SelectedItem as ComboBoxItem).Name)
             {
                 case "CurrentBoard": return GameService.CurrentGame.Board;
                 case "RegularBoard": return new Board(InitialSetup.Regular);
@@ -142,7 +151,7 @@ namespace ExtraChessUI
 
         private void EngineComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-
+            // TODO Load engine
         }
     }
 }
