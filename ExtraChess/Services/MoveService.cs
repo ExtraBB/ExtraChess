@@ -23,11 +23,11 @@ namespace ExtraChess.Services
             return moves;
         }
 
-        public static IEnumerable<Move> GetAllPossibleMoves(Board board, Move lastMove)
+        public static IEnumerable<Move> GetAllPossibleMoves(Board board)
         {
             if (board.CurrentPlayer == Player.Black)
             {
-                return PawnMoves.CalculateBPawnMoves(board, lastMove)
+                return PawnMoves.CalculateBPawnMoves(board)
                     .Concat(SlidingMoves.CalculateBBishopMoves(board))
                     .Concat(SlidingMoves.CalculateBRookMoves(board))
                     .Concat(SlidingMoves.CalculateBQueenMoves(board))
@@ -37,7 +37,7 @@ namespace ExtraChess.Services
             }
             else if (board.CurrentPlayer == Player.White)
             {
-                return PawnMoves.CalculateWPawnMoves(board, lastMove)
+                return PawnMoves.CalculateWPawnMoves(board)
                     .Concat(SlidingMoves.CalculateWBishopMoves(board))
                     .Concat(SlidingMoves.CalculateWRookMoves(board))
                     .Concat(SlidingMoves.CalculateWQueenMoves(board))
@@ -57,9 +57,9 @@ namespace ExtraChess.Services
 
         }
 
-        public static ulong Perft(Board board, int depth, Move lastMove = null)
+        public static ulong Perft(Board board, int depth)
         {
-            var moves = GetAllPossibleMoves(board, lastMove).ToArray();
+            var moves = GetAllPossibleMoves(board).ToArray();
 
             if (depth == 1)
             {
@@ -69,15 +69,15 @@ namespace ExtraChess.Services
             ulong total = 0;
             for (int i = 0; i < moves.Length; i++)
             {
-                total += Perft(board.PreviewMove(moves[i]), depth - 1, moves[i]);
+                total += Perft(board.PreviewMove(moves[i]), depth - 1);
             }
 
             return total;
         }
 
-        public static ulong PerftConcurrent(Board board, int depth, Move lastMove = null)
+        public static ulong PerftConcurrent(Board board, int depth)
         {
-            var moves = GetAllPossibleMoves(board, lastMove).ToArray();
+            var moves = GetAllPossibleMoves(board).ToArray();
 
             if (depth == 1)
             {
@@ -88,7 +88,7 @@ namespace ExtraChess.Services
 
             Parallel.For(0, moves.Length, i =>
              {
-                 totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1, moves[i]);
+                 totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1);
              });
 
             return totals.Length > 0 ? totals.Aggregate((a, b) => a + b) : 0;

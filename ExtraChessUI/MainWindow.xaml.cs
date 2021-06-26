@@ -80,13 +80,12 @@ namespace ExtraChessUI
             // Settings
             int perftSetting = (int)PerftDepth.Value;
             Board board = GetBoardForSetting();
-            Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
 
             Task.Run(() =>
             {
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                ulong perftValue = MoveService.PerftConcurrent(board, perftSetting, lastMove);
+                ulong perftValue = MoveService.PerftConcurrent(board, perftSetting);
 
                 this.Dispatcher.Invoke(() =>
                 {
@@ -109,15 +108,14 @@ namespace ExtraChessUI
             // Settings
             int perftSetting = (int)PerftDepth.Value;
             Board board = GetBoardForSetting();
-            Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
 
-            var moves = MoveService.GetAllPossibleMoves(board, lastMove).OrderBy(move => ((Square)move.From).ToString());
+            var moves = MoveService.GetAllPossibleMoves(board).OrderBy(move => ((Square)move.From).ToString());
 
             Task.Run(() =>
             {
                 Parallel.ForEach(moves, m =>
                 {
-                    var perft = MoveService.Perft(board.PreviewMove(m), perftSetting, m);
+                    var perft = MoveService.Perft(board.PreviewMove(m), perftSetting);
                     if (perft != 0)
                     {
                         this.Dispatcher.Invoke(() =>

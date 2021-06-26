@@ -14,7 +14,7 @@ namespace ExtraChess.Models
         A5, B5, C5, D5, E5, F5, G5, H5,
         A6, B6, C6, D6, E6, F6, G6, H6,
         A7, B7, C7, D7, E7, F7, G7, H7,
-        A8, B8, C8, D8, E8, F8, G8, H8,
+        A8, B8, C8, D8, E8, F8, G8, H8, None
     }
 
     public class Board
@@ -84,6 +84,9 @@ namespace ExtraChess.Models
         public bool BCanCastleQueenSide { get; private set; } = false;
         public bool BCanCastleKingSide { get; private set; } = false;
 
+        // Track en passent
+        public Square EnPassent { get; set; } = Square.None;
+
         public Player CurrentPlayer { get; set; } = Player.White;
 
         public Board(string fen = StartPos)
@@ -117,6 +120,9 @@ namespace ExtraChess.Models
 
         public void MakeMove(Move move)
         {
+            // Reset en passent
+            EnPassent = Square.None;
+
             // Clear to square
             WRooks = WRooks.UnsetBit(move.To);
             BRooks = BRooks.UnsetBit(move.To);
@@ -206,6 +212,11 @@ namespace ExtraChess.Models
                     }
                 case Piece.WPawn:
                     {
+                        if(move.To - move.From == 16)
+                        {
+                            EnPassent = (Square)move.To - 8;
+                        }
+
                         WPawns = (WPawns ^ from) | to;
                         if (move.SpecialMove == SpecialMove.EnPassant)
                         {
@@ -226,6 +237,11 @@ namespace ExtraChess.Models
                     }
                 case Piece.BPawn:
                     {
+                        if (move.From - move.To == 16)
+                        {
+                            EnPassent = (Square)move.To + 8;
+                        }
+
                         BPawns = (BPawns ^ from) | to;
                         if (move.SpecialMove == SpecialMove.EnPassant)
                         {
@@ -283,10 +299,9 @@ namespace ExtraChess.Models
                 string[] pieces = split[0].Split('/');
                 for (int rank = 0; rank < 8; rank++)
                 {
-                    for (int file = 0; file < 8; file++)
+                    int file = 0;
+                    foreach(char nextPiece in pieces[rank])
                     {
-                        char nextPiece = pieces[rank][file];
-
                         // Digits are empty
                         if (char.IsDigit(nextPiece))
                         {
@@ -298,6 +313,7 @@ namespace ExtraChess.Models
                         else
                         {
                             SetPieceForFENChar(nextPiece, 7 - rank, file);
+                            file++;
                         }
                     }
                 }
@@ -312,6 +328,12 @@ namespace ExtraChess.Models
                     if (c == 'Q') WCanCastleQueenSide = true;
                     if (c == 'k') BCanCastleKingSide = true;
                     if (c == 'q') BCanCastleQueenSide = true;
+                }
+
+                // Set en passent
+                if(split[3] != "-")
+                {
+                    EnPassent = (Square)Enum.Parse(typeof(Square), split[3].ToUpper());
                 }
 
                 // TODO: other FEN parts
