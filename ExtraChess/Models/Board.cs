@@ -5,7 +5,8 @@ using ExtraChess.Moves;
 
 namespace ExtraChess.Models
 {
-    public enum Square {
+    public enum Square
+    {
         A1, B1, C1, D1, E1, F1, G1, H1,
         A2, B2, C2, D2, E2, F2, G2, H2,
         A3, B3, C3, D3, E3, F3, G3, H3,
@@ -78,12 +79,10 @@ namespace ExtraChess.Models
         public const UInt64 DarkSquares = 0xAA55AA55AA55AA55;
 
         // Track castling rights
-        public bool WKingMoved { get; private set; } = false;
-        public bool WRookRightMoved { get; private set; } = false;
-        public bool WRookLeftMoved { get; private set; } = false;
-        public bool BKingMoved { get; private set; } = false;
-        public bool BRookRightMoved { get; private set; } = false;
-        public bool BRookLeftMoved { get; private set; } = false;
+        public bool WCanCastleQueenSide { get; private set; } = false;
+        public bool WCanCastleKingSide { get; private set; } = false;
+        public bool BCanCastleQueenSide { get; private set; } = false;
+        public bool BCanCastleKingSide { get; private set; } = false;
 
         public Board(string fen = StartPos)
         {
@@ -114,7 +113,7 @@ namespace ExtraChess.Models
             return allPieces;
         }
 
-        public void MakeMove(Move move) 
+        public void MakeMove(Move move)
         {
             // Clear to square
             WRooks = WRooks.UnsetBit(move.To);
@@ -133,114 +132,116 @@ namespace ExtraChess.Models
             // Make move for correct bitboard
             UInt64 from = 1UL << move.From;
             UInt64 to = 1UL << move.To;
-            switch(move.Piece)
+            switch (move.Piece)
             {
-                case Piece.WRook: 
-                {
-                    WRooks = (WRooks ^ from) | to; 
-                    if(move.From == 0)
+                case Piece.WRook:
                     {
-                        WRookLeftMoved = true;
-                    } 
-                    else if (move.From == 7)
-                    {
-                        WRookRightMoved = true;
+                        WRooks = (WRooks ^ from) | to;
+                        if (move.From == 0)
+                        {
+                            WCanCastleQueenSide = false;
+                        }
+                        else if (move.From == 7)
+                        {
+                            WCanCastleKingSide = false;
+                        }
+                        return;
                     }
-                    return;
-                }
-                case Piece.BRook: 
-                {
-                    BRooks = (BRooks ^ from) | to; 
-                    if(move.From == 56)
+                case Piece.BRook:
                     {
-                        BRookLeftMoved = true;
-                    } 
-                    else if (move.From == 63)
-                    {
-                        BRookRightMoved = true;
+                        BRooks = (BRooks ^ from) | to;
+                        if (move.From == 56)
+                        {
+                            BCanCastleQueenSide = false;
+                        }
+                        else if (move.From == 63)
+                        {
+                            BCanCastleKingSide = false;
+                        }
+                        return;
                     }
-                    return;
-                }
                 case Piece.WKnight: WKnights = (WKnights ^ from) | to; return;
                 case Piece.BKnight: BKnights = (BKnights ^ from) | to; return;
                 case Piece.WBishop: WBishops = (WBishops ^ from) | to; return;
                 case Piece.BBishop: BBishops = (BBishops ^ from) | to; return;
                 case Piece.WQueen: WQueen = (WQueen ^ from) | to; return;
                 case Piece.BQueen: BQueen = (BQueen ^ from) | to; return;
-                case Piece.WKing: 
-                {
-                    WKing = (WKing ^ from) | to; 
-                    WKingMoved = true;
-                    if(move.SpecialMove == SpecialMove.Castling)
+                case Piece.WKing:
                     {
-                        if(move.To > move.From)
+                        WKing = (WKing ^ from) | to;
+                        WCanCastleKingSide = false;
+                        WCanCastleQueenSide = false;
+                        if (move.SpecialMove == SpecialMove.Castling)
                         {
-                            WRooks = WRooks.UnsetBit((int)Square.H1).SetBit((int)Square.F1);
+                            if (move.To > move.From)
+                            {
+                                WRooks = WRooks.UnsetBit((int)Square.H1).SetBit((int)Square.F1);
+                            }
+                            else
+                            {
+                                WRooks = WRooks.UnsetBit((int)Square.A1).SetBit((int)Square.D1);
+                            }
                         }
-                        else
-                        {
-                            WRooks = WRooks.UnsetBit((int)Square.A1).SetBit((int)Square.D1);
-                        }
+                        return;
                     }
-                    return;
-                }
-                case Piece.BKing: 
-                {
-                    BKing = (BKing ^ from) | to; 
-                    BKingMoved = true;
-                    if(move.SpecialMove == SpecialMove.Castling)
+                case Piece.BKing:
                     {
-                        if(move.To > move.From)
+                        BKing = (BKing ^ from) | to;
+                        BCanCastleKingSide = false;
+                        BCanCastleQueenSide = false;
+                        if (move.SpecialMove == SpecialMove.Castling)
                         {
-                            BRooks = BRooks.UnsetBit((int)Square.H8).SetBit((int)Square.F8);
+                            if (move.To > move.From)
+                            {
+                                BRooks = BRooks.UnsetBit((int)Square.H8).SetBit((int)Square.F8);
+                            }
+                            else
+                            {
+                                BRooks = BRooks.UnsetBit((int)Square.A8).SetBit((int)Square.D8);
+                            }
                         }
-                        else
+                        return;
+                    }
+                case Piece.WPawn:
+                    {
+                        WPawns = (WPawns ^ from) | to;
+                        if (move.SpecialMove == SpecialMove.EnPassant)
                         {
-                            BRooks = BRooks.UnsetBit((int)Square.A8).SetBit((int)Square.D8);
+                            BPawns = BPawns.UnsetBit(move.To - 8);
                         }
-                    }
-                    return;
-                }
-                case Piece.WPawn: 
-                {
-                    WPawns = (WPawns ^ from) | to; 
-                    if(move.SpecialMove == SpecialMove.EnPassant)
-                    {
-                        BPawns = BPawns.UnsetBit(move.To - 8);
-                    }
-                    else if (move.SpecialMove == SpecialMove.Promotion)
-                    {
-                        WPawns = WPawns.UnsetBit(move.To);
-                        switch(move.PromotionType)
+                        else if (move.SpecialMove == SpecialMove.Promotion)
                         {
-                            case PromotionType.Queen: WQueen = WQueen.SetBit(move.To); break;
-                            case PromotionType.Knight: WKnights = WKnights.SetBit(move.To); break;
-                            case PromotionType.Bishop: WBishops = WBishops.SetBit(move.To); break;
-                            case PromotionType.Rook: WRooks = WRooks.SetBit(move.To); break;
+                            WPawns = WPawns.UnsetBit(move.To);
+                            switch (move.PromotionType)
+                            {
+                                case PromotionType.Queen: WQueen = WQueen.SetBit(move.To); break;
+                                case PromotionType.Knight: WKnights = WKnights.SetBit(move.To); break;
+                                case PromotionType.Bishop: WBishops = WBishops.SetBit(move.To); break;
+                                case PromotionType.Rook: WRooks = WRooks.SetBit(move.To); break;
+                            }
                         }
+                        return;
                     }
-                    return;
-                }
-                case Piece.BPawn: 
-                {
-                    BPawns = (BPawns ^ from) | to; 
-                    if(move.SpecialMove == SpecialMove.EnPassant)
+                case Piece.BPawn:
                     {
-                        WPawns = WPawns.UnsetBit(move.To + 8);
-                    }
-                    else if (move.SpecialMove == SpecialMove.Promotion)
-                    {
-                        BPawns = BPawns.UnsetBit(move.To);
-                        switch(move.PromotionType)
+                        BPawns = (BPawns ^ from) | to;
+                        if (move.SpecialMove == SpecialMove.EnPassant)
                         {
-                            case PromotionType.Queen: BQueen = BQueen.SetBit(move.To); break;
-                            case PromotionType.Knight: BKnights = BKnights.SetBit(move.To); break;
-                            case PromotionType.Bishop: BBishops = BBishops.SetBit(move.To); break;
-                            case PromotionType.Rook: BRooks = BRooks.SetBit(move.To); break;
+                            WPawns = WPawns.UnsetBit(move.To + 8);
                         }
+                        else if (move.SpecialMove == SpecialMove.Promotion)
+                        {
+                            BPawns = BPawns.UnsetBit(move.To);
+                            switch (move.PromotionType)
+                            {
+                                case PromotionType.Queen: BQueen = BQueen.SetBit(move.To); break;
+                                case PromotionType.Knight: BKnights = BKnights.SetBit(move.To); break;
+                                case PromotionType.Bishop: BBishops = BBishops.SetBit(move.To); break;
+                                case PromotionType.Rook: BRooks = BRooks.SetBit(move.To); break;
+                            }
+                        }
+                        return;
                     }
-                    return;
-                }
             }
         }
 
@@ -267,7 +268,7 @@ namespace ExtraChess.Models
         {
             try
             {
-                if(!FenRegex.IsMatch(fen))
+                if (!FenRegex.IsMatch(fen))
                 {
                     return false;
                 }
@@ -284,7 +285,7 @@ namespace ExtraChess.Models
                         // Digits are empty
                         if (char.IsDigit(nextPiece))
                         {
-                            for(int i = 0; i < (int)nextPiece - 48; i++)
+                            for (int i = 0; i < (int)nextPiece - 48; i++)
                             {
                                 file++;
                             }
