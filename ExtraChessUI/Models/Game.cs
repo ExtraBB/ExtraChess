@@ -5,31 +5,44 @@ using ExtraChess.Services;
 
 namespace ExtraChessUI.Models
 {
-    public class Game
+    public static class Game
     {
-        public Board Board { get; private set; }
-        public IEnumerable<Move> PossibleMoves { get; set; } = new List<Move>();
-        public Player Winner { get; set; } = 0;
+        public delegate void BoardChangedEventHandler(Board board);
+        public static event BoardChangedEventHandler BoardChanged;
 
-        public Game() 
+        public static Board Board { get; private set; }
+        public static IEnumerable<Move> PossibleMoves { get; set; } = new List<Move>();
+        public static Player Winner { get; set; } = 0;
+
+        public static void Start(string fen = null)
         {
-            Board = new Board();
+            Clear();
+            Board = new Board(fen ?? Board.StartPos);
             RefreshPossibleMoves();
+            BoardChanged?.Invoke(Board);
         }
 
-        public void MakeMove(Move move) 
+        public static void Clear()
+        {
+            Board = null;
+            PossibleMoves = new List<Move>();
+            Winner = 0;
+        }
+
+        public static void MakeMove(Move move)
         {
             Board.MakeMove(move);
             RefreshPossibleMoves();
             CheckForEnd();
+            BoardChanged?.Invoke(Board);
         }
 
-        private void RefreshPossibleMoves()
+        private static void RefreshPossibleMoves()
         {
             PossibleMoves = MoveService.GetAllPossibleMoves(Board);
         }
 
-        public void CheckForEnd() 
+        public static void CheckForEnd() 
         {
             if(!PossibleMoves.Any())
             {

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.RegularExpressions;
 using ExtraChess.Moves;
+using ExtraChess.Services;
 
 namespace ExtraChess.Models
 {
@@ -20,7 +22,7 @@ namespace ExtraChess.Models
     public class Board
     {
         private readonly Regex FenRegex = new(@"\s*^(((?:[rnbqkpRNBQKP1-8]+\/){7})[rnbqkpRNBQKP1-8]+)\s([b|w])\s([K|Q|k|q]{1,4})\s(-|[a-h][1-8])\s(\d+\s\d+)$");
-        private const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+        public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         public UInt64 WRooks, BRooks, WKnights, BKnights, WBishops, BBishops, WKing, BKing, WQueen, BQueen, WPawns, BPawns;
 
@@ -91,6 +93,7 @@ namespace ExtraChess.Models
 
         public Board(string fen = StartPos)
         {
+            MagicService.Initialize();
             UpdateFromFEN(fen);
         }
 
@@ -212,7 +215,7 @@ namespace ExtraChess.Models
                     }
                 case Piece.WPawn:
                     {
-                        if(move.To - move.From == 16)
+                        if (move.To - move.From == 16)
                         {
                             EnPassent = (Square)move.To - 8;
                         }
@@ -300,7 +303,7 @@ namespace ExtraChess.Models
                 for (int rank = 0; rank < 8; rank++)
                 {
                     int file = 0;
-                    foreach(char nextPiece in pieces[rank])
+                    foreach (char nextPiece in pieces[rank])
                     {
                         // Digits are empty
                         if (char.IsDigit(nextPiece))
@@ -322,7 +325,7 @@ namespace ExtraChess.Models
                 CurrentPlayer = split[1] == "w" ? Player.White : Player.Black;
 
                 // Set castling rights
-                foreach(char c in split[2])
+                foreach (char c in split[2])
                 {
                     if (c == 'K') WCanCastleKingSide = true;
                     if (c == 'Q') WCanCastleQueenSide = true;
@@ -331,12 +334,12 @@ namespace ExtraChess.Models
                 }
 
                 // Set en passent
-                if(split[3] != "-")
+                if (split[3] != "-")
                 {
                     EnPassent = (Square)Enum.Parse(typeof(Square), split[3].ToUpper());
                 }
 
-                // TODO: other FEN parts
+                // TODO: move counts
 
                 return true;
             }
@@ -364,6 +367,87 @@ namespace ExtraChess.Models
                 case 'P': WPawns = WPawns.SetBit(rank * 8 + file); return;
                 default: throw new ArgumentException("Invalid FEN position char");
             }
+        }
+
+        public string GenerateFEN()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            // Append positions
+            for (int rank = 7; rank >= 0; rank--)
+            {
+                int emptySquares = 0;
+                for (int file = 0; file < 8; file++)
+                {
+                    char nextPiece = GetFENCharForPosition(rank * 8 + file);
+                    if(nextPiece == '-')
+                    {
+                        emptySquares++;
+                    }
+                    else
+                    {
+                        if(emptySquares != 0)
+                        {
+                            sb.Append(emptySquares);
+                            emptySquares = 0;
+                        }
+                        sb.Append(nextPiece);
+                    }
+                }
+                if (emptySquares != 0)
+                {
+                    sb.Append(emptySquares);
+                }
+
+                if (rank != 0)
+                {
+                    sb.Append('/');
+                }
+            }
+            sb.Append(' ');
+
+            // Append player
+            sb.Append(CurrentPlayer == Player.White ? 'w' : 'b');
+            sb.Append(' ');
+
+            // Append castling rights
+            if(!WCanCastleKingSide && !WCanCastleQueenSide && !BCanCastleKingSide && !BCanCastleQueenSide)
+            {
+                sb.Append('-');
+            }
+            else
+            {
+                if (WCanCastleKingSide) sb.Append('K');
+                if (WCanCastleQueenSide) sb.Append('Q');
+                if (BCanCastleKingSide) sb.Append('k');
+                if (BCanCastleQueenSide) sb.Append('q');
+            }
+            sb.Append(' ');
+
+            // Append en passent
+            sb.Append(EnPassent != Square.None ? EnPassent.ToString().ToLower() : '-');
+            sb.Append(' ');
+
+            // TODO: implement move counts
+            sb.Append("0 1");
+
+            return sb.ToString();
+        }
+        private char GetFENCharForPosition(int position)
+        {
+            if (BRooks.NthBitSet(position)) return 'r';
+            if (WRooks.NthBitSet(position)) return 'R';
+            if (BKnights.NthBitSet(position)) return 'n';
+            if (WKnights.NthBitSet(position)) return 'N';
+            if (BBishops.NthBitSet(position)) return 'b';
+            if (WBishops.NthBitSet(position)) return 'B';
+            if (BQueen.NthBitSet(position)) return 'q';
+            if (WQueen.NthBitSet(position)) return 'Q';
+            if (BKing.NthBitSet(position)) return 'k';
+            if (WKing.NthBitSet(position)) return 'K';
+            if (BPawns.NthBitSet(position)) return 'p';
+            if (WPawns.NthBitSet(position)) return 'P';
+            return '-';
         }
     }
 }

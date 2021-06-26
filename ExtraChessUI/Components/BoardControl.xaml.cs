@@ -1,23 +1,15 @@
 ﻿using ExtraChess.Models;
-using ExtraChessUI.Services;
+using ExtraChessUI.Models;
 using ExtraChessUI.Utils;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace ExtraChessUI.Components
 {
@@ -107,10 +99,10 @@ namespace ExtraChessUI.Components
             // Check if move was made
             if (SelectedItem != null)
             {
-                Move move = GameService.CurrentGame.PossibleMoves.FirstOrDefault(move => move.From == SelectedItem.Position && move.To == newItem.Position);
+                Move move = Game.PossibleMoves.FirstOrDefault(move => move.From == SelectedItem.Position && move.To == newItem.Position);
                 if(move != null)
                 {
-                    GameService.MakeMove(move);
+                    Game.MakeMove(move);
                     SelectedItem = null;
                     return;
                 }
@@ -124,7 +116,7 @@ namespace ExtraChessUI.Components
             SelectedItem = newItem.Selected ? newItem : null;
 
             // Update move indicators
-            var movesFromPosition = newItem.Selected ? GameService.CurrentGame.PossibleMoves.Where(move => move.From == newItem.Position) : Enumerable.Empty<Move>();
+            var movesFromPosition = newItem.Selected ? Game.PossibleMoves.Where(move => move.From == newItem.Position) : Enumerable.Empty<Move>();
             foreach (var item in BoardItems)
             {
                 item.MoveVisibility = movesFromPosition.Any(move => move.To == item.Position) ? Visibility.Visible : Visibility.Collapsed;
