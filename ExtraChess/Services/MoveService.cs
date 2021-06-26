@@ -23,9 +23,9 @@ namespace ExtraChess.Services
             return moves;
         }
 
-        public static IEnumerable<Move> GetAllPossibleMoves(Board board, Player player, Move lastMove)
+        public static IEnumerable<Move> GetAllPossibleMoves(Board board, Move lastMove)
         {
-            if (player == Player.Black)
+            if (board.CurrentPlayer == Player.Black)
             {
                 return PawnMoves.CalculateBPawnMoves(board, lastMove)
                     .Concat(SlidingMoves.CalculateBBishopMoves(board))
@@ -35,7 +35,7 @@ namespace ExtraChess.Services
                     .Concat(KnightMoves.CalculateBKnightMoves(board))
                     .Where(move => IsLegalMove(board, move, Player.Black));
             }
-            else if (player == Player.White)
+            else if (board.CurrentPlayer == Player.White)
             {
                 return PawnMoves.CalculateWPawnMoves(board, lastMove)
                     .Concat(SlidingMoves.CalculateWBishopMoves(board))
@@ -57,40 +57,38 @@ namespace ExtraChess.Services
 
         }
 
-        public static ulong Perft(Board board, int depth, Move lastMove = null, Player player = Player.White)
+        public static ulong Perft(Board board, int depth, Move lastMove = null)
         {
-            var moves = GetAllPossibleMoves(board, player, lastMove).ToArray();
+            var moves = GetAllPossibleMoves(board, lastMove).ToArray();
 
             if (depth == 1)
             {
                 return (ulong)moves.Length;
             }
 
-            var nextPlayer = player == Player.White ? Player.Black : Player.White;
             ulong total = 0;
             for (int i = 0; i < moves.Length; i++)
             {
-                total += Perft(board.PreviewMove(moves[i]), depth - 1, moves[i], nextPlayer);
+                total += Perft(board.PreviewMove(moves[i]), depth - 1, moves[i]);
             }
 
             return total;
         }
 
-        public static ulong PerftConcurrent(Board board, int depth, Move lastMove = null, Player player = Player.White)
+        public static ulong PerftConcurrent(Board board, int depth, Move lastMove = null)
         {
-            var moves = GetAllPossibleMoves(board, player, lastMove).ToArray();
+            var moves = GetAllPossibleMoves(board, lastMove).ToArray();
 
             if (depth == 1)
             {
                 return (ulong)moves.Length;
             }
 
-            var nextPlayer = player == Player.White ? Player.Black : Player.White;
             ulong[] totals = new ulong[moves.Length];
 
             Parallel.For(0, moves.Length, i =>
              {
-                 totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1, moves[i], nextPlayer);
+                 totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1, moves[i]);
              });
 
             return totals.Length > 0 ? totals.Aggregate((a, b) => a + b) : 0;

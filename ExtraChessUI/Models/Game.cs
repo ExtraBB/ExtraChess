@@ -9,7 +9,6 @@ namespace ExtraChessUI.Models
     {
         public Board Board { get; private set; }
         public IEnumerable<Move> PossibleMoves { get; set; } = new List<Move>();
-        public Player CurrentPlayer { get; set; } = Player.White;
         public Player Winner { get; set; } = 0;
         public Move LastMove { get; set; } = null;
 
@@ -22,7 +21,6 @@ namespace ExtraChessUI.Models
         public void MakeMove(Move move) 
         {
             Board.MakeMove(move);
-            CurrentPlayer = (Player)(-(int)CurrentPlayer);
             LastMove = move;
             RefreshPossibleMoves();
             CheckForEnd();
@@ -30,14 +28,14 @@ namespace ExtraChessUI.Models
 
         private void RefreshPossibleMoves()
         {
-            PossibleMoves = MoveService.GetAllPossibleMoves(Board, CurrentPlayer, LastMove);
+            PossibleMoves = MoveService.GetAllPossibleMoves(Board, LastMove);
         }
 
         public void CheckForEnd() 
         {
             if(!PossibleMoves.Any())
             {
-                Winner = (Player)(-(int)CurrentPlayer);
+                Winner = (Player)(-(int)Board.CurrentPlayer);
             }
         }
     }

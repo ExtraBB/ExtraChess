@@ -84,6 +84,8 @@ namespace ExtraChess.Models
         public bool BCanCastleQueenSide { get; private set; } = false;
         public bool BCanCastleKingSide { get; private set; } = false;
 
+        public Player CurrentPlayer { get; set; } = Player.White;
+
         public Board(string fen = StartPos)
         {
             UpdateFromFEN(fen);
@@ -145,7 +147,7 @@ namespace ExtraChess.Models
                         {
                             WCanCastleKingSide = false;
                         }
-                        return;
+                        break;
                     }
                 case Piece.BRook:
                     {
@@ -158,14 +160,14 @@ namespace ExtraChess.Models
                         {
                             BCanCastleKingSide = false;
                         }
-                        return;
+                        break;
                     }
-                case Piece.WKnight: WKnights = (WKnights ^ from) | to; return;
-                case Piece.BKnight: BKnights = (BKnights ^ from) | to; return;
-                case Piece.WBishop: WBishops = (WBishops ^ from) | to; return;
-                case Piece.BBishop: BBishops = (BBishops ^ from) | to; return;
-                case Piece.WQueen: WQueen = (WQueen ^ from) | to; return;
-                case Piece.BQueen: BQueen = (BQueen ^ from) | to; return;
+                case Piece.WKnight: WKnights = (WKnights ^ from) | to; break;
+                case Piece.BKnight: BKnights = (BKnights ^ from) | to; break;
+                case Piece.WBishop: WBishops = (WBishops ^ from) | to; break;
+                case Piece.BBishop: BBishops = (BBishops ^ from) | to; break;
+                case Piece.WQueen: WQueen = (WQueen ^ from) | to; break;
+                case Piece.BQueen: BQueen = (BQueen ^ from) | to; break;
                 case Piece.WKing:
                     {
                         WKing = (WKing ^ from) | to;
@@ -182,7 +184,7 @@ namespace ExtraChess.Models
                                 WRooks = WRooks.UnsetBit((int)Square.A1).SetBit((int)Square.D1);
                             }
                         }
-                        return;
+                        break;
                     }
                 case Piece.BKing:
                     {
@@ -200,7 +202,7 @@ namespace ExtraChess.Models
                                 BRooks = BRooks.UnsetBit((int)Square.A8).SetBit((int)Square.D8);
                             }
                         }
-                        return;
+                        break;
                     }
                 case Piece.WPawn:
                     {
@@ -220,7 +222,7 @@ namespace ExtraChess.Models
                                 case PromotionType.Rook: WRooks = WRooks.SetBit(move.To); break;
                             }
                         }
-                        return;
+                        break;
                     }
                 case Piece.BPawn:
                     {
@@ -240,9 +242,11 @@ namespace ExtraChess.Models
                                 case PromotionType.Rook: BRooks = BRooks.SetBit(move.To); break;
                             }
                         }
-                        return;
+                        break;
                     }
             }
+
+            CurrentPlayer = (Player)(-(int)CurrentPlayer);
         }
 
         public Board PreviewMove(Move move)
@@ -274,8 +278,9 @@ namespace ExtraChess.Models
                 }
 
                 string[] split = fen.Split();
-                string[] pieces = split[0].Split('/');
 
+                // Update pieces
+                string[] pieces = split[0].Split('/');
                 for (int rank = 0; rank < 8; rank++)
                 {
                     for (int file = 0; file < 8; file++)
@@ -296,6 +301,9 @@ namespace ExtraChess.Models
                         }
                     }
                 }
+
+                // Set player
+                CurrentPlayer = split[1] == "w" ? Player.White : Player.Black;
 
                 // TODO: other FEN parts
 

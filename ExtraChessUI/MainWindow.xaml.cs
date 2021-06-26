@@ -80,14 +80,13 @@ namespace ExtraChessUI
             // Settings
             int perftSetting = (int)PerftDepth.Value;
             Board board = GetBoardForSetting();
-            ExtraChess.Models.Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
-            Player player = board == GameService.CurrentGame.Board ? GameService.CurrentGame.CurrentPlayer : Player.White;
+            Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
 
             Task.Run(() =>
             {
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                ulong perftValue = MoveService.PerftConcurrent(board, perftSetting, lastMove, player);
+                ulong perftValue = MoveService.PerftConcurrent(board, perftSetting, lastMove);
 
                 this.Dispatcher.Invoke(() =>
                 {
@@ -110,17 +109,15 @@ namespace ExtraChessUI
             // Settings
             int perftSetting = (int)PerftDepth.Value;
             Board board = GetBoardForSetting();
-            ExtraChess.Models.Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
-            Player player = board == GameService.CurrentGame.Board ? GameService.CurrentGame.CurrentPlayer : Player.White;
+            Move lastMove = board == GameService.CurrentGame.Board ? GameService.CurrentGame.LastMove : null;
 
-            var moves = MoveService.GetAllPossibleMoves(board, player, lastMove).OrderBy(move => ((ExtraChess.Models.Square)move.From).ToString());
+            var moves = MoveService.GetAllPossibleMoves(board, lastMove).OrderBy(move => ((Square)move.From).ToString());
 
             Task.Run(() =>
             {
                 Parallel.ForEach(moves, m =>
                 {
-                    var newBoard = board.PreviewMove(m);
-                    var perft = MoveService.Perft(newBoard, perftSetting, m, player: (Player)(-(int)player));
+                    var perft = MoveService.Perft(board.PreviewMove(m), perftSetting, m);
                     if (perft != 0)
                     {
                         this.Dispatcher.Invoke(() =>
