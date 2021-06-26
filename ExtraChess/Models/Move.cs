@@ -16,13 +16,6 @@ namespace ExtraChess.Models
         Castling = 3
     }
 
-    public class OldMove
-    {
-        public int From { get; set; }
-        public int To { get; set; }
-        public Piece Player { get; set; }
-    }
-
     public class Move
     {
         public Piece Piece { get; set; }

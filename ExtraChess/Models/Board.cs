@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using ExtraChess.Moves;
 
 namespace ExtraChess.Models
@@ -15,21 +16,12 @@ namespace ExtraChess.Models
         A8, B8, C8, D8, E8, F8, G8, H8,
     }
 
-    public enum InitialSetup
-    {
-        Regular,
-        Kiwipete,
-        Position3
-    }
-
     public class Board
     {
-        public UInt64 WRooks = 0x81, BRooks = 0x8100000000000000;
-        public UInt64 WKnights = 0x42, BKnights = 0x4200000000000000;
-        public UInt64 WBishops = 0x24, BBishops = 0x2400000000000000;
-        public UInt64 WKing = 0x10, BKing = 0x1000000000000000;
-        public UInt64 WQueen = 0x8, BQueen = 0x800000000000000;
-        public UInt64 WPawns = Rank2, BPawns = Rank7;
+        private readonly Regex FenRegex = new(@"\s*^(((?:[rnbqkpRNBQKP1-8]+\/){7})[rnbqkpRNBQKP1-8]+)\s([b|w])\s([K|Q|k|q]{1,4})\s(-|[a-h][1-8])\s(\d+\s\d+)$");
+        private const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+        public UInt64 WRooks, BRooks, WKnights, BKnights, WBishops, BBishops, WKing, BKing, WQueen, BQueen, WPawns, BPawns;
 
         public UInt64 WhitePieces { get => WRooks | WKnights | WBishops | WKing | WQueen | WPawns; }
         public UInt64 BlackPieces { get => BRooks | BKnights | BBishops | BKing | BQueen | BPawns; }
@@ -93,40 +85,9 @@ namespace ExtraChess.Models
         public bool BRookRightMoved { get; private set; } = false;
         public bool BRookLeftMoved { get; private set; } = false;
 
-        public Board(InitialSetup setup = InitialSetup.Regular)
+        public Board(string fen = StartPos)
         {
-            switch(setup)
-            {
-                case InitialSetup.Kiwipete:
-                {
-                    BPawns = 0UL.SetBit((int)Square.A7).SetBit((int)Square.B4).SetBit((int)Square.C7).SetBit((int)Square.D7).SetBit((int)Square.E6).SetBit((int)Square.F7).SetBit((int)Square.G6).SetBit((int)Square.H3);
-                    BBishops = 0UL.SetBit((int)Square.A6).SetBit((int)Square.G7);
-                    BKnights = 0UL.SetBit((int)Square.B6).SetBit((int)Square.F6);
-                    BQueen = 0UL.SetBit((int)Square.E7);
-                    WPawns = 0UL.SetBit((int)Square.A2).SetBit((int)Square.B2).SetBit((int)Square.C2).SetBit((int)Square.D5).SetBit((int)Square.E4).SetBit((int)Square.F2).SetBit((int)Square.G2).SetBit((int)Square.H2);
-                    WBishops = 0UL.SetBit((int)Square.D2).SetBit((int)Square.E2);
-                    WKnights = 0UL.SetBit((int)Square.C3).SetBit((int)Square.E5);
-                    WQueen = 0UL.SetBit((int)Square.F3);
-                    break;
-                }
-                case InitialSetup.Position3:
-                {
-                    BPawns = 0UL.SetBit((int)Square.C7).SetBit((int)Square.D6).SetBit((int)Square.F4);
-                    BKnights = 0;
-                    BBishops = 0;
-                    BQueen = 0;
-                    BRooks = 0UL.SetBit((int)Square.H5);
-                    BKing = 0UL.SetBit((int)Square.H4);
-                    WPawns = 0UL.SetBit((int)Square.B5).SetBit((int)Square.E2).SetBit((int)Square.G2);
-                    WKnights = 0;
-                    WBishops = 0;
-                    WQueen = 0;
-                    WRooks = 0UL.SetBit((int)Square.B4);
-                    WKing = 0UL.SetBit((int)Square.A5);
-                    break;
-                }
-                default: break;
-            }
+            UpdateFromFEN(fen);
         }
 
         public List<(int position, Piece piece)> GetAllPiecePositions()
@@ -300,6 +261,69 @@ namespace ExtraChess.Models
             return playerPossibleInCheck == Player.White
                 ? (square & AllBAttacks) != 0
                 : (square & AllWAttacks) != 0;
+        }
+
+        private bool UpdateFromFEN(string fen)
+        {
+            try
+            {
+                if(!FenRegex.IsMatch(fen))
+                {
+                    return false;
+                }
+
+                string[] split = fen.Split();
+                string[] pieces = split[0].Split('/');
+
+                for (int rank = 0; rank < 8; rank++)
+                {
+                    for (int file = 0; file < 8; file++)
+                    {
+                        char nextPiece = pieces[rank][file];
+
+                        // Digits are empty
+                        if (char.IsDigit(nextPiece))
+                        {
+                            for(int i = 0; i < (int)nextPiece - 48; i++)
+                            {
+                                file++;
+                            }
+                        }
+                        else
+                        {
+                            SetPieceForFENChar(nextPiece, 7 - rank, file);
+                        }
+                    }
+                }
+
+                // TODO: other FEN parts
+
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private void SetPieceForFENChar(char fenChar, int rank, int file)
+        {
+            switch (fenChar)
+            {
+                case 'r': BRooks = BRooks.SetBit(rank * 8 + file); return;
+                case 'n': BKnights = BKnights.SetBit(rank * 8 + file); return;
+                case 'b': BBishops = BBishops.SetBit(rank * 8 + file); return;
+                case 'q': BQueen = BQueen.SetBit(rank * 8 + file); return;
+                case 'k': BKing = BKing.SetBit(rank * 8 + file); return;
+                case 'p': BPawns = BPawns.SetBit(rank * 8 + file); return;
+                case 'R': WRooks = WRooks.SetBit(rank * 8 + file); return;
+                case 'N': WKnights = WKnights.SetBit(rank * 8 + file); return;
+                case 'B': WBishops = WBishops.SetBit(rank * 8 + file); return;
+                case 'Q': WQueen = WQueen.SetBit(rank * 8 + file); return;
+                case 'K': WKing = WKing.SetBit(rank * 8 + file); return;
+                case 'P': WPawns = WPawns.SetBit(rank * 8 + file); return;
+                default: throw new ArgumentException("Invalid FEN position char");
+            }
         }
     }
 }

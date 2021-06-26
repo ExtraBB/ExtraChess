@@ -57,6 +57,9 @@
                         <ComboBoxItem Name="RegularBoard" Content="Regular Board" />
                         <ComboBoxItem Name="Kiwipete" Content="Kiwipete" />
                         <ComboBoxItem Name="Position3" Content="Position3" />
+                        <ComboBoxItem Name="Position4" Content="Position4" />
+                        <ComboBoxItem Name="Position5" Content="Position5" />
+                        <ComboBoxItem Name="Position6" Content="Position6" />
                     </ComboBox>
                     <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
                     <Button Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" />
