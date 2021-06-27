@@ -63,5 +63,4 @@ namespace ExtraChess.UCI
         {
             throw new NotImplementedException();
         }
-    }
 }

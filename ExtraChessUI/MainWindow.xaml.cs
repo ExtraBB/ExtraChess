@@ -1,4 +1,5 @@
-﻿using ExtraChess.Models;
+﻿using ExtraChess.Analysis;
+using ExtraChess.Models;
 using ExtraChess.Moves;
 using ExtraChessUI.Models;
 using System;
@@ -93,7 +94,7 @@ namespace ExtraChessUI
             {
                 Stopwatch watch = new Stopwatch();
                 watch.Start();
-                ulong perftValue = MoveGenerator.PerftConcurrent(board, perftSetting);
+                ulong perftValue = PerftAnalyzer.PerftConcurrent(board, perftSetting);
 
                 this.Dispatcher.Invoke(() =>
                 {
@@ -118,7 +119,7 @@ namespace ExtraChessUI
             {
                 Parallel.ForEach(moves, m =>
                 {
-                    var perft = MoveGenerator.Perft(board.PreviewMove(m), perftSetting);
+                    var perft = PerftAnalyzer.Perft(board.PreviewMove(m), perftSetting);
                     if (perft != 0)
                     {
                         this.Dispatcher.Invoke(() =>

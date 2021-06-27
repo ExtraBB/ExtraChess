@@ -11,6 +11,25 @@ namespace ExtraChess
     internal static class EngineState
     {
         internal static bool Ready { get; set; } = true;
+
+        private static bool stop = false;
+        internal static bool Stop
+        {
+            get => stop;
+            set
+            {
+                // When stop is reset, calculation is cancelled so engine is ready
+                if(!value)
+                {
+                    Ready = true;
+                }
+                else
+                {
+                    Ready = false;
+                }
+                stop = value;
+            }
+        }
         internal static Board Board { get; private set; }
 
         internal static void IsReady()
@@ -58,6 +77,12 @@ namespace ExtraChess
             {
                 Ready = true;
             }
+        }
+
+        internal static void Reset()
+        {
+            Board = null;
+            Stop = false;
         }
     }
 }

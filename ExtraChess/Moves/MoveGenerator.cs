@@ -54,44 +54,6 @@ namespace ExtraChess.Moves
             return player == Player.White
                 ? !copy.SquareIsInCheck(copy.WKing, player)
                 : !copy.SquareIsInCheck(copy.BKing, player);
-
-        }
-
-        public static ulong Perft(Board board, int depth)
-        {
-            var moves = GenerateMoves(board).ToArray();
-
-            if (depth == 1)
-            {
-                return (ulong)moves.Length;
-            }
-
-            ulong total = 0;
-            for (int i = 0; i < moves.Length; i++)
-            {
-                total += Perft(board.PreviewMove(moves[i]), depth - 1);
-            }
-
-            return total;
-        }
-
-        public static ulong PerftConcurrent(Board board, int depth)
-        {
-            var moves = GenerateMoves(board).ToArray();
-
-            if (depth == 1)
-            {
-                return (ulong)moves.Length;
-            }
-
-            ulong[] totals = new ulong[moves.Length];
-
-            Parallel.For(0, moves.Length, i =>
-             {
-                 totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1);
-             });
-
-            return totals.Length > 0 ? totals.Aggregate((a, b) => a + b) : 0;
         }
     }
 }

@@ -7,4 +7,10 @@
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="Resources\uci_help_text_en.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
