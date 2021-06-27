@@ -12,7 +12,7 @@ namespace ExtraChess.UCI
     {
         public static void ProcessInstruction(string instruction)
         {
-            if(string.IsNullOrEmpty(instruction))
+            if (string.IsNullOrEmpty(instruction))
             {
                 throw new NoCommandException();
             }
@@ -26,27 +26,27 @@ namespace ExtraChess.UCI
                 case "uci":
                     {
                         PrintUCI();
-						break;
+                        break;
                     }
                 case "debug":
                     {
-						EngineOptions.Debug(options);
-						break;
+                        EngineOptions.Debug(options);
+                        break;
                     }
                 case "isready":
                     {
-						EngineState.IsReady();
-						break;
+                        EngineState.IsReady();
+                        break;
                     }
                 case "setoption":
                     {
-						EngineOptions.SetOption(options);
-						break;
+                        EngineOptions.SetOption(options);
+                        break;
                     }
                 case "register":
                     {
-						EngineOptions.Register(options);
-						break;
+                        EngineOptions.Register(options);
+                        break;
                     }
                 case "ucinewgame":
                     {
@@ -54,9 +54,15 @@ namespace ExtraChess.UCI
                     }
                 case "position":
                     {
-                        throw new NotImplementedException();
+                        EngineState.SetupPosition(options);
+                        break;
                     }
-                case "go":
+				case "d":
+					{
+						EngineState.Board?.Print();
+						break;
+					}
+				case "go":
                     {
                         throw new NotImplementedException();
                     }
@@ -71,13 +77,13 @@ namespace ExtraChess.UCI
                 case "help":
                     {
                         Console.Write(HelpString);
-						break;
+                        break;
                     }
                 case "quit":
                     {
                         Environment.Exit(0);
-						break;
-					}
+                        break;
+                    }
                 default:
                     {
                         throw new UnknownCommandException(command);
@@ -85,23 +91,23 @@ namespace ExtraChess.UCI
             }
         }
 
-		private static void PrintUCI()
+        private static void PrintUCI()
         {
-			Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
+            Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
 
-			StringBuilder stringBuilder = new StringBuilder();
+            StringBuilder stringBuilder = new StringBuilder();
 
-			stringBuilder.AppendLine($"id name ExtraChess v{engineVersion.Major}.{engineVersion.Minor}");
-			stringBuilder.AppendLine($"id author Bruno Carvalhal");
+            stringBuilder.AppendLine($"id name ExtraChess v{engineVersion.Major}.{engineVersion.Minor}");
+            stringBuilder.AppendLine($"id author Bruno Carvalhal");
 
-			// TODO: Print options here
+            // TODO: Print options here
 
-			stringBuilder.AppendLine("uciok");
+            stringBuilder.AppendLine("uciok");
 
-			Console.Write(stringBuilder.ToString());
-		}
+            Console.Write(stringBuilder.ToString());
+        }
 
-		private static string HelpString =
+        private static string HelpString =
 @"	* uci
 		tell engine to use the uci (universal chess interface),
 		this will be send once as a first command after program boot
@@ -227,5 +233,5 @@ namespace ExtraChess.UCI
 	* quit
 		quit the program as soon as possible
 ";
-	}
+    }
 }

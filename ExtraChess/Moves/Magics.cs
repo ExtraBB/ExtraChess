@@ -194,9 +194,7 @@ namespace ExtraChess.Moves
         {
             if(!initialized)
             {
-                Console.WriteLine("Initializing Bishop attacks");
                 InitializeSlidersAttacks(true);
-                Console.WriteLine("Initializing Rook attacks");
                 InitializeSlidersAttacks(false);
                 initialized = true;
             }

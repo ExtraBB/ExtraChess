@@ -18,4 +18,5 @@ namespace ExtraChess
 
     internal class NoCommandException : Exception { }
     internal class InvalidArgumentsException : Exception { }
+    internal class InvalidMoveException : Exception { }
 }

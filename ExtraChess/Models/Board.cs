@@ -396,7 +396,7 @@ namespace ExtraChess.Models
                 for (int file = 0; file < 8; file++)
                 {
                     char nextPiece = GetFENCharForPosition(rank * 8 + file);
-                    if(nextPiece == '-')
+                    if(nextPiece == ' ')
                     {
                         emptySquares++;
                     }
@@ -451,6 +451,7 @@ namespace ExtraChess.Models
 
             return sb.ToString();
         }
+
         private char GetFENCharForPosition(int position)
         {
             if (BRooks.NthBitSet(position)) return 'r';
@@ -465,7 +466,26 @@ namespace ExtraChess.Models
             if (WKing.NthBitSet(position)) return 'K';
             if (BPawns.NthBitSet(position)) return 'p';
             if (WPawns.NthBitSet(position)) return 'P';
-            return '-';
+            return ' ';
+        }
+
+        public void Print()
+        {
+            StringBuilder sb = new StringBuilder();
+            for(int rank = 8; rank > 0; rank--)
+            {
+                sb.AppendLine("+---+---+---+---+---+---+---+---+");
+                for (int position = (rank - 1) * 8; position < rank * 8; position++)
+                {
+                    sb.Append($"| {GetFENCharForPosition(position)} ");
+                }
+                sb.AppendLine($"| {rank}");
+            }
+            
+            sb.AppendLine("+---+---+---+---+---+---+---+---+");
+            sb.AppendLine("  a   b   c   d   e   f   g   h  ");
+
+            Console.Write(sb.ToString());
         }
     }
 }
