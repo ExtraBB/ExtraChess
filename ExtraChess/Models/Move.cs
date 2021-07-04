@@ -73,5 +73,23 @@ namespace ExtraChess.Models
                 throw new InvalidMoveException();
             }
         }
+
+        public string ToUCIMove()
+        {
+            string result = "";
+
+            result += ((Square)From).ToString().ToLower();
+            result += ((Square)To).ToString().ToLower();
+
+            switch (PromotionType)
+            {
+                case PromotionType.Queen: result += 'q'; break;
+                case PromotionType.Rook: result += 'r'; break;
+                case PromotionType.Knight: result += 'n'; break;
+                case PromotionType.Bishop: result += 'b'; break;
+            }
+
+            return result;
+        }
     }
 }

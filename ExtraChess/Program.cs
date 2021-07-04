@@ -9,6 +9,9 @@ namespace ExtraChess
         static void Main(string[] args)
         {
             Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
+
+            EngineState.SetupPosition("startpos");
+
             Console.WriteLine($"Welcome to the ExtraChess v{engineVersion.Major}.{engineVersion.Minor} engine! Please enter your command below.");
 
             while (true)

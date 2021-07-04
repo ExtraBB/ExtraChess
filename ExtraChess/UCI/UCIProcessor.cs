@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ExtraChess.Analysis;
+using ExtraChess.Models;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -66,7 +68,8 @@ namespace ExtraChess.UCI
 					}
 				case "go":
                     {
-                        throw new NotImplementedException();
+                        ProcessGo(options);
+                        break;
                     }
                 case "stop":
                     {
@@ -90,6 +93,25 @@ namespace ExtraChess.UCI
                 default:
                     {
                         throw new UnknownCommandException(command);
+                    }
+            }
+        }
+
+        private static void ProcessGo(string[] args)
+        {
+            switch(args[0])
+            {
+                case "perft": 
+                    {
+                        List<(Move, ulong)> divideResults = PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1]));
+                        ulong total = 0;
+                        foreach((Move move, ulong perft) result in divideResults)
+                        {
+                            Console.WriteLine($"{result.move.ToUCIMove()}: {result.perft}");
+                            total += result.perft;
+                        }
+                        Console.WriteLine($"Nodes searched: {total}");
+                        return;
                     }
             }
         }

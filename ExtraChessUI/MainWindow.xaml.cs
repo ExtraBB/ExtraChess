@@ -2,6 +2,7 @@
 using ExtraChess.Models;
 using ExtraChess.Moves;
 using ExtraChessUI.Models;
+using ExtraChessUI.Utils;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -35,17 +36,33 @@ namespace ExtraChessUI
     /// </summary>
     public partial class MainWindow : Window
     {
+        private const string SELECT_ENGINE_PLACEHOLDER_TEXT = "Select Engine";
         private MainWindowViewModel viewModel = new MainWindowViewModel();
+
+        private EngineProcess CurrentEngine = null;
+
         public MainWindow()
         {
             DataContext = viewModel;
             InitializeComponent();
             Game.BoardChanged += GameService_BoardChanged;
             InitializeEngineComboBox();
+            Closed += MainWindow_Closed;
+        }
+
+        private void MainWindow_Closed(object sender, EventArgs e)
+        {
+            if (CurrentEngine != null)
+            {
+                CurrentEngine.OutputReceived -= CurrentEngine_OutputReceived;
+                CurrentEngine.Dispose();
+            }
         }
 
         private void InitializeEngineComboBox()
         {
+            viewModel.EngineOptions.Add(SELECT_ENGINE_PLACEHOLDER_TEXT);
+
             foreach (string path in Directory.GetFiles("."))
             {
                 if (Path.GetExtension(path).ToLower().Equals(".exe"))
@@ -58,10 +75,7 @@ namespace ExtraChessUI
                 }
             }
 
-            if (viewModel.EngineOptions.Count > 0)
-            {
-                EngineComboBox.SelectedItem = viewModel.EngineOptions[0];
-            }
+            EngineComboBox.SelectedItem = viewModel.EngineOptions.First();
         }
 
         private void StartGame_Click(object sender, RoutedEventArgs e)
@@ -80,55 +94,14 @@ namespace ExtraChessUI
         {
             BoardControl.ResetBoard();
             Game.Start(viewModel.FEN);
+            CurrentEngine?.SendMessage("position fen " + viewModel.FEN);
         }
 
         private void Perft_Click(object sender, RoutedEventArgs e)
         {
-            AnalysisOutput.Text = $"Starting Perft for depth {(int)PerftDepth.Value}\n";
-
-            // Settings
-            int perftSetting = (int)PerftDepth.Value;
-            Board board = GetBoardForSetting();
-
-            Task.Run(() =>
-            {
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
-                ulong perftValue = PerftAnalyzer.PerftConcurrent(board, perftSetting);
-
-                this.Dispatcher.Invoke(() =>
-                {
-                    AnalysisOutput.Text += $"Perft for depth {PerftDepth.Value} is {perftValue} ({watch.ElapsedMilliseconds} ms)\n";
-                });
-
-                watch.Stop();
-            });
-        }
-
-        private void Divide_Click(object sender, RoutedEventArgs e)
-        {
-            AnalysisOutput.Text = $"Starting PerftDivide for depth {(int)PerftDepth.Value}\n";
-
-            // Settings
-            int perftSetting = (int)PerftDepth.Value;
-            Board board = GetBoardForSetting();
-
-            var moves = MoveGenerator.GenerateMoves(board).OrderBy(move => ((Square)move.From).ToString());
-
-            Task.Run(() =>
-            {
-                Parallel.ForEach(moves, m =>
-                {
-                    var perft = PerftAnalyzer.Perft(board.PreviewMove(m), perftSetting);
-                    if (perft != 0)
-                    {
-                        this.Dispatcher.Invoke(() =>
-                        {
-                            AnalysisOutput.Text += $"{(Square)m.From}{(Square)m.To}: {perft}\n".ToLower();
-                        });
-                    }
-                });
-            });
+            Board board = GetBoardForSetting() ?? new Board();
+            CurrentEngine.SendMessage("position fen " + board.GenerateFEN());
+            CurrentEngine.SendMessage("go perft " + PerftDepth.Value);
         }
 
         private Board GetBoardForSetting()
@@ -137,8 +110,8 @@ namespace ExtraChessUI
             {
                 case "CurrentBoard": return Game.Board;
                 case "RegularBoard": return new Board();
-                case "Kiwipete": return new Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -");
-                case "Position3": return new Board("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - -");
+                case "Kiwipete": return new Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+                case "Position3": return new Board("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
                 case "Position4": return new Board("r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1");
                 case "Position5": return new Board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
                 case "Position6": return new Board("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
@@ -154,7 +127,34 @@ namespace ExtraChessUI
 
         private void EngineComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            // TODO Load engine
+            BoardControl.ResetBoard();
+            Game.Clear();
+
+            if (CurrentEngine != null)
+            {
+                AnalysisOutput.Text = "";
+                CurrentEngine.OutputReceived -= CurrentEngine_OutputReceived;
+                CurrentEngine.Dispose();
+                CurrentEngine = null;
+                PerftButton.IsEnabled = false;
+            }
+
+            if ((string)EngineComboBox.SelectedItem != SELECT_ENGINE_PLACEHOLDER_TEXT)
+            {
+                CurrentEngine = new EngineProcess((string)EngineComboBox.SelectedItem);
+                CurrentEngine.OutputReceived += CurrentEngine_OutputReceived;
+                CurrentEngine.SendMessage("isready");
+                PerftButton.IsEnabled = true;
+            }
+        }
+
+        private void CurrentEngine_OutputReceived(string line)
+        {
+            this.Dispatcher.Invoke(() =>
+            {
+                AnalysisOutput.Text += line + "\n";
+                OutputScrollViewer.ScrollToEnd();
+            });
         }
     }
 }

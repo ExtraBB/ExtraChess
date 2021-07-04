@@ -44,33 +44,38 @@ namespace ExtraChess
             }).Wait();
         }
 
-        internal static void SetupPosition(string[] uciArgs)
+        internal static void SetupPosition(params string[] uciArgs)
         {
             try
             {
                 Ready = false;
 
                 int movesArgumentIndex = Array.IndexOf(uciArgs, "moves");
+
+                if (uciArgs[0] == "startpos")
+                {
+                    Board = new Board();
+                }
+                else if (uciArgs[0] == "fen")
+                {
+                    string fen = movesArgumentIndex != -1
+                        ? string.Join(' ', uciArgs.Skip(1).Take(movesArgumentIndex - 1))
+                        : string.Join(' ', uciArgs.Skip(1));
+                    Board = new Board(fen);
+                }
+
                 if(movesArgumentIndex != -1)
                 {
-                    string fen = string.Join(' ', uciArgs.Take(movesArgumentIndex));
-                    Board = fen == "startpos" ? new Board() : new Board(fen);
-
-                    foreach(string uciMove in uciArgs.Skip(movesArgumentIndex + 1))
+                    foreach (string uciMove in uciArgs.Skip(movesArgumentIndex + 1))
                     {
                         IEnumerable<Move> generatedMoves = MoveGenerator.GenerateMoves(Board);
                         Move move = Move.UCIMoveToMove(generatedMoves, uciMove);
-                        if(move == null)
+                        if (move == null)
                         {
                             break;
                         }
                         Board.MakeMove(move);
                     }
-                }
-                else
-                {
-                    string fen = string.Join(' ', uciArgs);
-                    Board = fen == "startpos" ? new Board() : new Board(fen);
                 }
             }
             finally

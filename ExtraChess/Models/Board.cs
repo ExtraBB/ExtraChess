@@ -144,6 +144,24 @@ namespace ExtraChess.Models
             WPawns = WPawns.UnsetBit(move.To);
             BPawns = BPawns.UnsetBit(move.To);
 
+            // Update castling rights for captures
+            if(move.To == (int)Square.H8)
+            {
+                BCanCastleKingSide = false;
+            }
+            else if (move.To == (int)Square.A8)
+            {
+                BCanCastleQueenSide = false;
+            }
+            else if (move.To == (int)Square.H1)
+            {
+                WCanCastleKingSide = false;
+            }
+            else if (move.To == (int)Square.A1)
+            {
+                WCanCastleQueenSide = false;
+            }
+
             // Make move for correct bitboard
             UInt64 from = 1UL << move.From;
             UInt64 to = 1UL << move.To;

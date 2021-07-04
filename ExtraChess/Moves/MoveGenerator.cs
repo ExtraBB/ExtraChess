@@ -25,6 +25,7 @@ namespace ExtraChess.Moves
 
         public static IEnumerable<Move> GenerateMoves(Board board)
         {
+            Magics.Initialize();
             if (board.CurrentPlayer == Player.Black)
             {
                 return PawnMoves.CalculateBPawnMoves(board)

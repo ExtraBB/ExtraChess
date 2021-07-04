@@ -14,16 +14,16 @@ namespace ExtraChess.UCI
 
         internal static void Register(string[] args)
         {
-            if(args.Length == 1 && args[0] == "later")
+            if (args.Length == 1 && args[0] == "later")
             {
                 RegisterName = null;
                 RegisterCode = null;
                 return;
             }
 
-            for(int i = 0; i < args.Length; i++)
+            for (int i = 0; i < args.Length; i++)
             {
-                if(args[i] == "name" && i + 1 < args.Length)
+                if (args[i] == "name" && i + 1 < args.Length)
                 {
                     RegisterName = args[i + 1];
                     i++;
@@ -44,7 +44,7 @@ namespace ExtraChess.UCI
         {
             if (args.Length == 1)
             {
-                if(args[0] == "on")
+                if (args[0] == "on")
                 {
                     DebugMode = true;
                     return;
@@ -63,4 +63,5 @@ namespace ExtraChess.UCI
         {
             throw new NotImplementedException();
         }
+    }
 }

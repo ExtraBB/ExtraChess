@@ -20,7 +20,7 @@
         
         <StackPanel Orientation="Horizontal" Grid.ColumnSpan="3" HorizontalAlignment="Center">
             <TextBlock Foreground="White" FontSize="14" Margin="0,0,16,0">Selected Engine: </TextBlock>
-            <ComboBox Name="EngineComboBox" SelectionChanged="EngineComboBox_SelectionChanged" ItemsSource="{Binding EngineOptions}"/>
+            <ComboBox Name="EngineComboBox" SelectionChanged="EngineComboBox_SelectionChanged" ItemsSource="{Binding EngineOptions}" />
         </StackPanel>
         
         <!-- Game Column -->
@@ -62,15 +62,12 @@
                         <ComboBoxItem Name="Position6" Content="Position6" />
                     </ComboBox>
                     <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
-                    <Button Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" />
-                    <Button Content="Divide" Click="Divide_Click" Width="100" FontSize="14" />
+                    <Button Name="PerftButton" Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" IsEnabled="false"/>
                 </StackPanel>
             </StackPanel>
             <Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" Padding="4">
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                    <TextBlock Name="AnalysisOutput" Foreground="#ebebd0" TextAlignment="Center" FontFamily="Consolas" FontSize="14">
-                        
-                    </TextBlock>
+                <ScrollViewer Name="OutputScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                    <TextBox Background="#222" Name="AnalysisOutput" Foreground="#ebebd0" TextAlignment="Center" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"  />
                 </ScrollViewer>
             </Border>
         </Grid>
