@@ -1,5 +1,5 @@
 # ExtraChess
-A .NET Core Chess engine
+A UCI-based .NET Core Chess engine
 
 ## Goals
  - Create a playable game of chess vs computer
