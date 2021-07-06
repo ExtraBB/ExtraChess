@@ -73,7 +73,7 @@ namespace ExtraChess.UCI
                     }
                 case "stop":
                     {
-						EngineState.Stop = true;
+						EngineState.Stop();
 						break;
 					}
                 case "ponderhit":
@@ -99,6 +99,12 @@ namespace ExtraChess.UCI
 
         private static void ProcessGo(string[] args)
         {
+            if(args.Length == 0)
+            {
+                MoveAnalyzer.StartCalculating(EngineState.Board);
+                return;
+            }
+
             switch(args[0])
             {
                 case "perft": 
@@ -111,6 +117,16 @@ namespace ExtraChess.UCI
                             total += result.perft;
                         }
                         Console.WriteLine($"Nodes searched: {total}");
+                        return;
+                    }
+                case "movetime":
+                    {
+                        MoveAnalyzer.StartCalculating(EngineState.Board, long.Parse(args[1]));
+                        return;
+                    }
+                case "infinite":
+                    {
+                        MoveAnalyzer.StartCalculating(EngineState.Board);
                         return;
                     }
             }

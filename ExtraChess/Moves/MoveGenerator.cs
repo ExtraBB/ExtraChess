@@ -9,7 +9,6 @@ namespace ExtraChess.Moves
 {
     public static class MoveGenerator
     {
-
         public static IEnumerable<Move> CreateMovesFromBitboard(UInt64 bitboard, int position, Piece piece)
         {
             List<Move> moves = new List<Move>(32);

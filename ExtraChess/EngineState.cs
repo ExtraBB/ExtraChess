@@ -1,4 +1,5 @@
-﻿using ExtraChess.Models;
+﻿using ExtraChess.Analysis;
+using ExtraChess.Models;
 using ExtraChess.Moves;
 using System;
 using System.Collections.Generic;
@@ -12,24 +13,11 @@ namespace ExtraChess
     {
         internal static bool Ready { get; set; } = true;
 
-        private static bool stop = false;
-        internal static bool Stop
+        internal static void Stop()
         {
-            get => stop;
-            set
-            {
-                // When stop is reset, calculation is cancelled so engine is ready
-                if(!value)
-                {
-                    Ready = true;
-                }
-                else
-                {
-                    Ready = false;
-                }
-                stop = value;
-            }
+            MoveAnalyzer.StopCalculating();
         }
+
         internal static Board Board { get; private set; }
 
         internal static void IsReady()
@@ -87,7 +75,7 @@ namespace ExtraChess
         internal static void Reset()
         {
             Board = null;
-            Stop = false;
+            Ready = true;
         }
     }
 }
