@@ -82,11 +82,14 @@ namespace ExtraChessUI.Components
 
         public void ResetBoard()
         {
-            BoardItems.Clear();
-            for (int i = 63; i >= 0; i--)
+            this.Dispatcher.Invoke(() =>
             {
-                BoardItems.Add(new BoardItem() { Position = i });
-            }
+                BoardItems.Clear();
+                for (int i = 63; i >= 0; i--)
+                {
+                    BoardItems.Add(new BoardItem() { Position = i });
+                }
+            });
         }
 
         private void Square_MouseUp(object sender, MouseButtonEventArgs e)
@@ -123,13 +126,17 @@ namespace ExtraChessUI.Components
             }
         }
 
+
         public void UpdateFromBoard(Board board)
         {
             ResetBoard();
 
             foreach ((int position, Piece piece) in board.GetAllPiecePositions())
             {
-                BoardItems[63 - position].Image = PieceImages[piece];
+                this.Dispatcher.Invoke(() =>
+                {
+                    BoardItems[63 - position].Image = PieceImages[piece];
+                });
             }
         }
     }

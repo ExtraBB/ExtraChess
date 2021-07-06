@@ -26,18 +26,23 @@
         <!-- Game Column -->
         <Grid Grid.Column="0" Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="24"/>
                 <RowDefinition Height="16"/>
-                <RowDefinition Height="512"/>
+                <RowDefinition Height="24"/>
+                <RowDefinition Height="16"/>
+                <RowDefinition Height="512" />
             </Grid.RowDefinitions>
-            <StackPanel HorizontalAlignment="Center">
-                <TextBlock Foreground="White" FontSize="20" TextAlignment="Center" Margin="0,0,0,16">Game</TextBlock>
-                <StackPanel Orientation="Horizontal">
-                    <Button Content="Start" Width="100" FontSize="14" Click="StartGame_Click" />
-                    <Button Content="Reset" Width="100" FontSize="14" Click="ResetGame_Click" Margin="16,0,0,0"/>
-                </StackPanel>
+            <TextBlock Grid.Row="0" Foreground="White" FontSize="20" TextAlignment="Center">Game</TextBlock>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Start" Width="100" FontSize="14" Click="StartGame_Click" />
+                <Button Content="Reset" Width="100" FontSize="14" Click="ResetGame_Click" Margin="16,0,0,0"/>
             </StackPanel>
-            <Border Grid.Row="2" BorderBrush="Gray">
+            <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
+                <Label Foreground="White">Engine TPM:</Label>
+                <xctk:IntegerUpDown x:Name="EngineTPM" Value="4" />
+            </StackPanel>
+            <Border Grid.Row="5" BorderBrush="Gray">
                 <components:BoardControl x:Name="BoardControl" Grid.Row="2" />
             </Border>
         </Grid>
@@ -45,27 +50,26 @@
         <!-- Analysis Column -->
         <Grid Grid.Column="2" Grid.Row="1">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="24"/>
                 <RowDefinition Height="16"/>
                 <RowDefinition Height="512"/>
             </Grid.RowDefinitions>
-            <StackPanel HorizontalAlignment="Center">
-                <TextBlock Foreground="White" FontSize="20" TextAlignment="Center" Margin="0,0,0,16">Analysis</TextBlock>
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                    <ComboBox Name="PerftBoardSetting" Margin="0,0,16,0" FontSize="14">
-                        <ComboBoxItem Name="CurrentBoard" Content="Current Game Board" IsSelected="True" />
-                        <ComboBoxItem Name="RegularBoard" Content="Regular Board" />
-                        <ComboBoxItem Name="Kiwipete" Content="Kiwipete" />
-                        <ComboBoxItem Name="Position3" Content="Position3" />
-                        <ComboBoxItem Name="Position4" Content="Position4" />
-                        <ComboBoxItem Name="Position5" Content="Position5" />
-                        <ComboBoxItem Name="Position6" Content="Position6" />
-                    </ComboBox>
-                    <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
-                    <Button Name="PerftButton" Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" IsEnabled="false"/>
-                </StackPanel>
+            <TextBlock Grid.Row="0" Foreground="White" FontSize="20" TextAlignment="Center">Analysis</TextBlock>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                <ComboBox Name="PerftBoardSetting" Margin="0,0,16,0" FontSize="14">
+                    <ComboBoxItem Name="CurrentBoard" Content="Current Game Board" IsSelected="True" />
+                    <ComboBoxItem Name="RegularBoard" Content="Regular Board" />
+                    <ComboBoxItem Name="Kiwipete" Content="Kiwipete" />
+                    <ComboBoxItem Name="Position3" Content="Position3" />
+                    <ComboBoxItem Name="Position4" Content="Position4" />
+                    <ComboBoxItem Name="Position5" Content="Position5" />
+                    <ComboBoxItem Name="Position6" Content="Position6" />
+                </ComboBox>
+                <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
+                <Button Name="PerftButton" Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" IsEnabled="false"/>
             </StackPanel>
-            <Border Grid.Row="2" BorderThickness="1" BorderBrush="Gray" Padding="4">
+            <Border Grid.Row="3" BorderThickness="1" BorderBrush="Gray" Padding="4">
                 <ScrollViewer Name="OutputScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
                     <TextBox Background="#222" Name="AnalysisOutput" Foreground="#ebebd0" TextAlignment="Center" FontFamily="Consolas" FontSize="14" TextWrapping="Wrap"  />
                 </ScrollViewer>

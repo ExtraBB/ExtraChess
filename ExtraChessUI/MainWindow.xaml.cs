@@ -55,6 +55,7 @@ namespace ExtraChessUI
             if (CurrentEngine != null)
             {
                 CurrentEngine.OutputReceived -= CurrentEngine_OutputReceived;
+                CurrentEngine.MoveReceived -= CurrentEngine_MoveReceived;
                 CurrentEngine.Dispose();
             }
         }
@@ -123,6 +124,12 @@ namespace ExtraChessUI
         {
             BoardControl.UpdateFromBoard(board);
             viewModel.FEN = board.GenerateFEN();
+
+            if(board.CurrentPlayer == Player.Black && CurrentEngine != null)
+            {
+                CurrentEngine.SendMessage("position fen " + viewModel.FEN);
+                CurrentEngine.SendMessage($"go movetime {EngineTPM.Value * 1000}");
+            }
         }
 
         private void EngineComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -134,6 +141,7 @@ namespace ExtraChessUI
             {
                 AnalysisOutput.Text = "";
                 CurrentEngine.OutputReceived -= CurrentEngine_OutputReceived;
+                CurrentEngine.MoveReceived -= CurrentEngine_MoveReceived;
                 CurrentEngine.Dispose();
                 CurrentEngine = null;
                 PerftButton.IsEnabled = false;
@@ -143,6 +151,7 @@ namespace ExtraChessUI
             {
                 CurrentEngine = new EngineProcess((string)EngineComboBox.SelectedItem);
                 CurrentEngine.OutputReceived += CurrentEngine_OutputReceived;
+                CurrentEngine.MoveReceived += CurrentEngine_MoveReceived;
                 CurrentEngine.SendMessage("isready");
                 PerftButton.IsEnabled = true;
             }
@@ -155,6 +164,17 @@ namespace ExtraChessUI
                 AnalysisOutput.Text += line + "\n";
                 OutputScrollViewer.ScrollToEnd();
             });
+        }
+
+        private void CurrentEngine_MoveReceived(Move move)
+        {
+            Game.MakeMove(move);
+            if(Game.Winner != Player.None)
+            {
+                MessageBox.Show($"{Game.Winner} has won!");
+                BoardControl.ResetBoard();
+                Game.Clear();
+            }
         }
     }
 }
