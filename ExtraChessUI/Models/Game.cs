@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using ExtraChess.Generators;
 using ExtraChess.Models;
 using ExtraChess.Moves;
 

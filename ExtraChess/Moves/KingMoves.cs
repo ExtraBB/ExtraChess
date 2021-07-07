@@ -1,3 +1,4 @@
+using ExtraChess.Generators;
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
@@ -17,7 +18,7 @@ namespace ExtraChess.Moves
             }
             
             int position = board.WKing.GetLS1BIndex();
-            return MoveGenerator.CreateMovesFromBitboard(KingMovesLookupTable[position] & ~board.WhitePieces, position, Piece.WKing).Concat(GetCastlingMoves(board, Piece.WKing));
+            return MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.WhitePieces, position, Piece.WKing).Concat(GetCastlingMoves(board, Piece.WKing));
         }
 
         public static IEnumerable<Move> CalculateBKingMoves(Board board)
@@ -28,7 +29,7 @@ namespace ExtraChess.Moves
             }
             
             int position = board.BKing.GetLS1BIndex();
-            return MoveGenerator.CreateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BlackPieces, position, Piece.BKing).Concat(GetCastlingMoves(board, Piece.BKing));
+            return MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BlackPieces, position, Piece.BKing).Concat(GetCastlingMoves(board, Piece.BKing));
         }
 
         public static UInt64 GetKingAttackMap(UInt64 king, UInt64 ownPieces)

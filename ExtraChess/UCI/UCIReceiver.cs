@@ -1,17 +1,10 @@
 ﻿using ExtraChess.Analysis;
-using ExtraChess.Models;
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace ExtraChess.UCI
 {
-    public static class UCIProcessor
+    public static class UCIReceiver
     {
         public static void ProcessInstruction(string instruction)
         {
@@ -28,7 +21,7 @@ namespace ExtraChess.UCI
             {
                 case "uci":
                     {
-                        PrintUCI();
+                        UCISender.SendEngineInfo();
                         break;
                     }
                 case "debug":
@@ -82,7 +75,7 @@ namespace ExtraChess.UCI
                     }
                 case "help":
                     {
-                        Console.Write(File.ReadAllText("Resources/uci_help_text_en.txt"));
+                        UCISender.SendHelp();
                         break;
                     }
                 case "quit":
@@ -101,7 +94,7 @@ namespace ExtraChess.UCI
         {
             if(args.Length == 0)
             {
-                MoveAnalyzer.StartCalculating(EngineState.Board);
+                MoveAnalyzer.StartAnalysis(EngineState.Board);
                 return;
             }
 
@@ -109,43 +102,20 @@ namespace ExtraChess.UCI
             {
                 case "perft": 
                     {
-                        List<(Move, ulong)> divideResults = PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1]));
-                        ulong total = 0;
-                        foreach((Move move, ulong perft) result in divideResults)
-                        {
-                            Console.WriteLine($"{result.move.ToUCIMove()}: {result.perft}");
-                            total += result.perft;
-                        }
-                        Console.WriteLine($"Nodes searched: {total}");
+                        UCISender.SendPerft(PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1])));
                         return;
                     }
                 case "movetime":
                     {
-                        MoveAnalyzer.StartCalculating(EngineState.Board, long.Parse(args[1]));
+                        MoveAnalyzer.StartAnalysis(EngineState.Board, long.Parse(args[1]));
                         return;
                     }
                 case "infinite":
                     {
-                        MoveAnalyzer.StartCalculating(EngineState.Board);
+                        MoveAnalyzer.StartAnalysis(EngineState.Board);
                         return;
                     }
             }
-        }
-
-        private static void PrintUCI()
-        {
-            Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
-
-            StringBuilder stringBuilder = new StringBuilder();
-
-            stringBuilder.AppendLine($"id name ExtraChess v{engineVersion.Major}.{engineVersion.Minor}");
-            stringBuilder.AppendLine($"id author Bruno Carvalhal");
-
-            // TODO: Print supported options here
-
-            stringBuilder.AppendLine("uciok");
-
-            Console.Write(stringBuilder.ToString());
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using ExtraChess.Models;
+﻿using ExtraChess.Generators;
+using ExtraChess.Models;
 using ExtraChess.Moves;
 using System;
 using System.Collections.Generic;
@@ -12,39 +13,57 @@ namespace ExtraChess.Analysis
     public static class MoveAnalyzer
     {
         private static Random random = new Random();
-        private static bool isCalculating = false;
 
-        public static void StartCalculating(Board board, long calculateForMillis = long.MaxValue)
+        public static bool IsAnalyzing { get; private set; }
+        public delegate void BestMoveFoundEventHandler(Move move);
+        public static event BestMoveFoundEventHandler BestMoveFound;
+
+        public static void StartAnalysis(Board board, long calculateForMillis = long.MaxValue)
         {
-            if(isCalculating)
+            if(IsAnalyzing)
             {
                 return;
             }
 
-            isCalculating = true;
-
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-
-            while(isCalculating && watch.ElapsedMilliseconds < calculateForMillis)
+            try
             {
-                PrintRandomMove(board);
-                break;
+                IsAnalyzing = true;
+
+                Stopwatch watch = new Stopwatch();
+                watch.Start();
+
+                while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
+                {
+                    Move bestMove = GetRandomMove(board);
+                    BestMoveFound?.Invoke(bestMove);
+                    break;
+                }
+
+                watch.Stop();
             }
-
-            watch.Stop();
-            isCalculating = false;
+            finally
+            {
+                IsAnalyzing = false;
+            }
         }
 
-        public static void StopCalculating()
+        public static void StopAnalysis()
         {
-            isCalculating = false;
+            IsAnalyzing = false;
         }
 
-        private static void PrintRandomMove(Board board)
+        private static Move GetRandomMove(Board board)
         {
             Move[] moves = MoveGenerator.GenerateMoves(board).ToArray();
-            Console.WriteLine($"bestmove {moves[random.Next(moves.Length)].ToUCIMove()}");
+            return moves[random.Next(moves.Length)];
+        }
+
+        public static bool IsLegalMove(Board board, Move move, Player player)
+        {
+            Board copy = board.PreviewMove(move);
+            return player == Player.White
+                ? !copy.SquareIsInCheck(copy.WKing, player)
+                : !copy.SquareIsInCheck(copy.BKing, player);
         }
     }
 }

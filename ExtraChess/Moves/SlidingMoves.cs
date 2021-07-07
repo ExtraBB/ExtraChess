@@ -1,3 +1,4 @@
+using ExtraChess.Generators;
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
@@ -16,7 +17,7 @@ namespace ExtraChess.Moves
                 if(board.WBishops.NthBitSet(i))
                 {
                     UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.WBishop));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WBishop));
                 }
             }
 
@@ -32,7 +33,7 @@ namespace ExtraChess.Moves
                 if(board.BBishops.NthBitSet(i))
                 {
                     UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.BBishop));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BBishop));
                 }
             }
 
@@ -48,7 +49,7 @@ namespace ExtraChess.Moves
                 if(board.WRooks.NthBitSet(i))
                 {
                     UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.WRook));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WRook));
                 }
             }
 
@@ -64,7 +65,7 @@ namespace ExtraChess.Moves
                 if(board.BRooks.NthBitSet(i))
                 {
                     UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(attacks, i, Piece.BRook));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BRook));
                 }
             }
 
@@ -81,7 +82,7 @@ namespace ExtraChess.Moves
                 {
                     UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
                     UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
                     break;
                 }
             }
@@ -99,7 +100,7 @@ namespace ExtraChess.Moves
                 {
                     UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
                     UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
-                    moves = moves.Concat(MoveGenerator.CreateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
+                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
                     break;
                 }
             }

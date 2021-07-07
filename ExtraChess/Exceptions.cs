@@ -14,6 +14,11 @@ namespace ExtraChess
         {
             Command = command;
         }
+
+        public override string ToString()
+        {
+            return $"Unknown command: " + Command;
+        }
     }
 
     internal class NoCommandException : Exception { }

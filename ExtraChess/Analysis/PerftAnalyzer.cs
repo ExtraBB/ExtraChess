@@ -1,11 +1,7 @@
-﻿using ExtraChess.Models;
-using ExtraChess.Moves;
-using System;
-using System.Collections;
-using System.Collections.Concurrent;
+﻿using ExtraChess.Generators;
+using ExtraChess.Models;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ExtraChess.Analysis

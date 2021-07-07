@@ -1,6 +1,8 @@
 ﻿using ExtraChess.Analysis;
+using ExtraChess.Generators;
 using ExtraChess.Models;
 using ExtraChess.Moves;
+using ExtraChess.UCI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,14 +13,24 @@ namespace ExtraChess
 {
     internal static class EngineState
     {
-        internal static bool Ready { get; set; } = true;
+        internal static Board Board { get; private set; }
+        internal static bool Ready { get => !MoveAnalyzer.IsAnalyzing && !MoveGenerator.IsGenerating && !BoardGenerator.IsGenerating; }
+
+        internal static void Initialize()
+        {
+            Reset();
+            MoveAnalyzer.BestMoveFound += MoveAnalyzer_BestMoveFound;
+        }
+
+        private static void MoveAnalyzer_BestMoveFound(Move move)
+        {
+            UCISender.SendBestMove(move);
+        }
 
         internal static void Stop()
         {
-            MoveAnalyzer.StopCalculating();
+            MoveAnalyzer.StopAnalysis();
         }
-
-        internal static Board Board { get; private set; }
 
         internal static void IsReady()
         {
@@ -34,48 +46,12 @@ namespace ExtraChess
 
         internal static void SetupPosition(params string[] uciArgs)
         {
-            try
-            {
-                Ready = false;
-
-                int movesArgumentIndex = Array.IndexOf(uciArgs, "moves");
-
-                if (uciArgs[0] == "startpos")
-                {
-                    Board = new Board();
-                }
-                else if (uciArgs[0] == "fen")
-                {
-                    string fen = movesArgumentIndex != -1
-                        ? string.Join(' ', uciArgs.Skip(1).Take(movesArgumentIndex - 1))
-                        : string.Join(' ', uciArgs.Skip(1));
-                    Board = new Board(fen);
-                }
-
-                if(movesArgumentIndex != -1)
-                {
-                    foreach (string uciMove in uciArgs.Skip(movesArgumentIndex + 1))
-                    {
-                        IEnumerable<Move> generatedMoves = MoveGenerator.GenerateMoves(Board);
-                        Move move = Move.UCIMoveToMove(generatedMoves, uciMove);
-                        if (move == null)
-                        {
-                            break;
-                        }
-                        Board.MakeMove(move);
-                    }
-                }
-            }
-            finally
-            {
-                Ready = true;
-            }
+            Board = BoardGenerator.GenerateBoardFromUCIPosition(uciArgs);
         }
 
         internal static void Reset()
         {
             Board = null;
-            Ready = true;
         }
     }
 }

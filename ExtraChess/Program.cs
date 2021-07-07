@@ -8,17 +8,17 @@ namespace ExtraChess
     {
         static void Main(string[] args)
         {
-            Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
-
+            EngineState.Initialize();
             EngineState.SetupPosition("startpos");
 
+            Version engineVersion = Assembly.GetEntryAssembly().GetName().Version;
             Console.WriteLine($"Welcome to the ExtraChess v{engineVersion.Major}.{engineVersion.Minor} engine! Please enter your command below.");
 
             while (true)
             {
                 try
                 {
-                    UCIProcessor.ProcessInstruction(Console.ReadLine());
+                    UCIReceiver.ProcessInstruction(Console.ReadLine());
                 }
                 catch (UnknownCommandException ex)
                 {
