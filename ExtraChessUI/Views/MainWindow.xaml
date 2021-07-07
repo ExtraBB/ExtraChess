@@ -40,7 +40,7 @@
             </StackPanel>
             <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center">
                 <Label Foreground="White">Engine TPM:</Label>
-                <xctk:IntegerUpDown x:Name="EngineTPM" Value="4" />
+                <TextBox x:Name="EngineTPM" Text="4" Width="32" TextAlignment="Center" FontSize="14" VerticalAlignment="Center"/>
             </StackPanel>
             <Border Grid.Row="5" BorderBrush="Gray">
                 <local:BoardControl x:Name="BoardControl" Grid.Row="2" />
@@ -66,7 +66,7 @@
                     <ComboBoxItem Name="Position5" Content="Position5" />
                     <ComboBoxItem Name="Position6" Content="Position6" />
                 </ComboBox>
-                <xctk:IntegerUpDown x:Name="PerftDepth" Value="4" />
+                <TextBox x:Name="PerftDepth" Text="4" Width="32" TextAlignment="Center" FontSize="14" VerticalAlignment="Center"/>
                 <Button Name="PerftButton" Content="Perft" Click="Perft_Click" Width="100" Margin="16,0" FontSize="14" IsEnabled="false"/>
             </StackPanel>
             <Border Grid.Row="3" BorderThickness="1" BorderBrush="Gray" Padding="4">

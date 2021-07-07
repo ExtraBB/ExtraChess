@@ -96,9 +96,10 @@ namespace ExtraChessUI.Views
 
         private void Perft_Click(object sender, RoutedEventArgs e)
         {
+            int depth = int.Parse(PerftDepth.Text);
             Board board = GetBoardForSetting() ?? new Board();
             CurrentEngine.SendMessage("position fen " + board.GenerateFEN());
-            CurrentEngine.SendMessage("go perft " + PerftDepth.Value);
+            CurrentEngine.SendMessage("go perft " + depth);
         }
 
         private Board GetBoardForSetting()
@@ -123,8 +124,9 @@ namespace ExtraChessUI.Views
 
             if(board.CurrentPlayer == Player.Black && CurrentEngine != null)
             {
+                int tpm = int.Parse(EngineTPM.Text);
                 CurrentEngine.SendMessage("position fen " + viewModel.FEN);
-                CurrentEngine.SendMessage($"go movetime {EngineTPM.Value * 1000}");
+                CurrentEngine.SendMessage($"go movetime {tpm * 1000}");
             }
         }
 
