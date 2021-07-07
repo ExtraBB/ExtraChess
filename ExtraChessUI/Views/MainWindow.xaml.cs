@@ -1,21 +1,17 @@
-﻿using ExtraChess.Analysis;
-using ExtraChess.Models;
-using ExtraChess.Moves;
-using ExtraChessUI.Models;
+﻿using ExtraChess.Models;
+using ExtraChessUI.Game;
 using ExtraChessUI.Utils;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace ExtraChessUI
+namespace ExtraChessUI.Views
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
@@ -39,13 +35,13 @@ namespace ExtraChessUI
         private const string SELECT_ENGINE_PLACEHOLDER_TEXT = "Select Engine";
         private MainWindowViewModel viewModel = new MainWindowViewModel();
 
-        private EngineProcess CurrentEngine = null;
+        private GameEngine CurrentEngine = null;
 
         public MainWindow()
         {
             DataContext = viewModel;
             InitializeComponent();
-            Game.BoardChanged += GameService_BoardChanged;
+            GameState.BoardChanged += GameService_BoardChanged;
             InitializeEngineComboBox();
             Closed += MainWindow_Closed;
         }
@@ -82,19 +78,19 @@ namespace ExtraChessUI
         private void StartGame_Click(object sender, RoutedEventArgs e)
         {
             BoardControl.ResetBoard();
-            Game.Start();
+            GameState.Start();
         }
 
         private void ResetGame_Click(object sender, RoutedEventArgs e)
         {
             BoardControl.ResetBoard();
-            Game.Clear();
+            GameState.Clear();
         }
 
         private void LoadFen_Click(object sender, RoutedEventArgs e)
         {
             BoardControl.ResetBoard();
-            Game.Start(viewModel.FEN);
+            GameState.Start(viewModel.FEN);
             CurrentEngine?.SendMessage("position fen " + viewModel.FEN);
         }
 
@@ -109,7 +105,7 @@ namespace ExtraChessUI
         {
             switch ((PerftBoardSetting.SelectedItem as ComboBoxItem).Name)
             {
-                case "CurrentBoard": return Game.Board;
+                case "CurrentBoard": return GameState.Board;
                 case "RegularBoard": return new Board();
                 case "Kiwipete": return new Board("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
                 case "Position3": return new Board("8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1");
@@ -117,7 +113,7 @@ namespace ExtraChessUI
                 case "Position5": return new Board("rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8");
                 case "Position6": return new Board("r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10");
             }
-            return Game.Board;
+            return GameState.Board;
         }
 
         private void GameService_BoardChanged(Board board)
@@ -135,7 +131,7 @@ namespace ExtraChessUI
         private void EngineComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             BoardControl.ResetBoard();
-            Game.Clear();
+            GameState.Clear();
 
             if (CurrentEngine != null)
             {
@@ -149,7 +145,7 @@ namespace ExtraChessUI
 
             if ((string)EngineComboBox.SelectedItem != SELECT_ENGINE_PLACEHOLDER_TEXT)
             {
-                CurrentEngine = new EngineProcess((string)EngineComboBox.SelectedItem);
+                CurrentEngine = new GameEngine((string)EngineComboBox.SelectedItem);
                 CurrentEngine.OutputReceived += CurrentEngine_OutputReceived;
                 CurrentEngine.MoveReceived += CurrentEngine_MoveReceived;
                 CurrentEngine.SendMessage("isready");
@@ -168,12 +164,12 @@ namespace ExtraChessUI
 
         private void CurrentEngine_MoveReceived(Move move)
         {
-            Game.MakeMove(move);
-            if(Game.Winner != Player.None)
+            GameState.MakeMove(move);
+            if(GameState.Winner != Player.None)
             {
-                MessageBox.Show($"{Game.Winner} has won!");
+                MessageBox.Show($"{GameState.Winner} has won!");
                 BoardControl.ResetBoard();
-                Game.Clear();
+                GameState.Clear();
             }
         }
     }

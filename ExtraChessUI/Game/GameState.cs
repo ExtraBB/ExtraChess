@@ -4,9 +4,9 @@ using ExtraChess.Generators;
 using ExtraChess.Models;
 using ExtraChess.Moves;
 
-namespace ExtraChessUI.Models
+namespace ExtraChessUI.Game
 {
-    public static class Game
+    public static class GameState
     {
         public delegate void BoardChangedEventHandler(Board board);
         public static event BoardChangedEventHandler BoardChanged;
@@ -30,12 +30,28 @@ namespace ExtraChessUI.Models
             Winner = 0;
         }
 
+        public static bool TryMakeMove(int from, int to)
+        {
+            Move move = PossibleMoves.FirstOrDefault(move => move.From == from && move.To == to);
+            if(move != null)
+            {
+                MakeMove(move);
+                return true;
+            }
+            return false;
+        }
+
         public static void MakeMove(Move move)
         {
             Board.MakeMove(move);
             RefreshPossibleMoves();
             CheckForEnd();
             BoardChanged?.Invoke(Board);
+        }
+
+        public static IEnumerable<int> GetMovesFromPositionToSquares(int from)
+        {
+            return PossibleMoves.Where(move => move.From == from).Select(move => move.To);
         }
 
         private static void RefreshPossibleMoves()

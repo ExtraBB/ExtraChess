@@ -1,9 +1,9 @@
-﻿<Window x:Class="ExtraChessUI.MainWindow"
+﻿<Window x:Class="ExtraChessUI.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ExtraChessUI" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit" xmlns:components="clr-namespace:ExtraChessUI.Components"
+        xmlns:local="clr-namespace:ExtraChessUI.Views" xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         Title="MainWindow" Background="#222" SizeToContent="WidthAndHeight">
     <Grid Margin="16">
@@ -43,7 +43,7 @@
                 <xctk:IntegerUpDown x:Name="EngineTPM" Value="4" />
             </StackPanel>
             <Border Grid.Row="5" BorderBrush="Gray">
-                <components:BoardControl x:Name="BoardControl" Grid.Row="2" />
+                <local:BoardControl x:Name="BoardControl" Grid.Row="2" />
             </Border>
         </Grid>
         

@@ -1,17 +1,11 @@
 ﻿using ExtraChess.Models;
-using ExtraChessUI.Models;
+using ExtraChessUI.Game;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.IO.Pipes;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ExtraChessUI.Utils
 {
-    public class EngineProcess : IDisposable
+    public class GameEngine : IDisposable
     {
         private Process process;
 
@@ -21,7 +15,7 @@ namespace ExtraChessUI.Utils
         public delegate void MoveReceivedEventHandler(Move move);
         public event MoveReceivedEventHandler MoveReceived;
 
-        public EngineProcess(string fileName)
+        public GameEngine(string fileName)
         {
             process = new Process()
             {
@@ -47,7 +41,7 @@ namespace ExtraChessUI.Utils
             string[] split = e.Data.Split();
             if(split[0] == "bestmove")
             {
-                MoveReceived?.Invoke(Move.UCIMoveToMove(Game.PossibleMoves, split[1]));
+                MoveReceived?.Invoke(Move.UCIMoveToMove(GameState.PossibleMoves, split[1]));
             }
         }
 
