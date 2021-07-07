@@ -1,5 +1,6 @@
 ﻿using ExtraChess.Analysis;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace ExtraChess.UCI
@@ -102,7 +103,10 @@ namespace ExtraChess.UCI
             {
                 case "perft": 
                     {
-                        UCISender.SendPerft(PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1])));
+                        Stopwatch watch = new Stopwatch();
+                        watch.Start();
+                        UCISender.SendPerft(PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1])), watch.ElapsedMilliseconds);
+                        watch.Stop();
                         return;
                     }
                 case "movetime":

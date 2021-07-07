@@ -6,26 +6,23 @@ using System.Linq;
 
 namespace ExtraChess.Moves
 {
-    public static class KnightMoves 
+    public static class KnightMoves
     {
         private static UInt64[] KnightMovesLookupTable;
 
         public static IEnumerable<Move> CalculateBKnightMoves(Board board)
         {
-            if(KnightMovesLookupTable == null)
+            if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
-            
+
             IEnumerable<Move> moves = new List<Move>(16);
 
-            for(int i = 0; i < 64; i++)
+            foreach (int i in board.BKnights.GetBitsSet())
             {
-                if(board.BKnights.NthBitSet(i))
-                {
-                    UInt64 attacks = KnightMovesLookupTable[i] & ~board.BlackPieces;
-                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
-                }
+                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BlackPieces;
+                moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
             }
 
             return moves;
@@ -33,20 +30,17 @@ namespace ExtraChess.Moves
 
         public static IEnumerable<Move> CalculateWKnightMoves(Board board)
         {
-            if(KnightMovesLookupTable == null)
+            if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
-            
+
             IEnumerable<Move> moves = new List<Move>(16);
 
-            for(int i = 0; i < 64; i++)
+            foreach (int i in board.WKnights.GetBitsSet())
             {
-                if(board.WKnights.NthBitSet(i))
-                {
-                    UInt64 attacks = KnightMovesLookupTable[i] & ~board.WhitePieces;
-                    moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
-                }
+                UInt64 attacks = KnightMovesLookupTable[i] & ~board.WhitePieces;
+                moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
             }
 
             return moves;
@@ -54,18 +48,15 @@ namespace ExtraChess.Moves
 
         public static UInt64 GetKnightsAttackMap(UInt64 knights, UInt64 ownPieces)
         {
-            if(KnightMovesLookupTable == null)
+            if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
 
             UInt64 allAttacks = 0;
-            for(int i = 0; i < 64; i++)
+            foreach (int i in knights.GetBitsSet())
             {
-                if(knights.NthBitSet(i))
-                {
-                    allAttacks |= KnightMovesLookupTable[i] & ~ownPieces;
-                }
+                allAttacks |= KnightMovesLookupTable[i] & ~ownPieces;
             }
             return allAttacks;
         }
@@ -84,7 +75,7 @@ namespace ExtraChess.Moves
             UInt64 spot_7_clip = ~Board.AFile;
             UInt64 spot_8_clip = ~(Board.AFile | Board.BFile);
 
-            for(int i = 0; i < 64; i++)
+            for (int i = 0; i < 64; i++)
             {
                 UInt64 knight = 1UL << i;
 

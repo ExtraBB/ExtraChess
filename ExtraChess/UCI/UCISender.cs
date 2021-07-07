@@ -16,7 +16,7 @@ namespace ExtraChess.UCI
             Console.WriteLine($"bestmove {move.ToUCIMove()}");
         }
 
-        public static void SendPerft(List<(Move, ulong)> results)
+        public static void SendPerft(List<(Move, ulong)> results, long elapsed)
         {
             ulong total = 0;
             foreach ((Move move, ulong perft) result in results)
@@ -24,7 +24,7 @@ namespace ExtraChess.UCI
                 Console.WriteLine($"{result.move.ToUCIMove()}: {result.perft}");
                 total += result.perft;
             }
-            Console.WriteLine($"Nodes searched: {total}");
+            Console.WriteLine($"Nodes searched: {total} ({elapsed}ms)");
         }
 
         public static void SendEngineInfo()

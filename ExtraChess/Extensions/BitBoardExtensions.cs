@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace ExtraChess 
@@ -28,6 +29,20 @@ namespace ExtraChess
         public static bool NthBitSet(this UInt64 value, int n)
         {
             return value.GetBit(n) != 0;
+        }
+
+        public static IEnumerable<int> GetBitsSet(this UInt64 value)
+        {
+            int counter = 0;
+            while(value > 0)
+            {
+                if((value & 1UL) == 1UL)
+                {
+                    yield return counter;
+                }
+                value >>= 1;
+                counter++;
+            }
         }
 
         public static UInt64 SetBit(this UInt64 value, int n)
