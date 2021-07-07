@@ -20,7 +20,7 @@ namespace ExtraChess.Models
 
     public class Board
     {
-        private readonly Regex FenRegex = new(@"\s*^(((?:[rnbqkpRNBQKP1-8]+\/){7})[rnbqkpRNBQKP1-8]+)\s([b|w])\s([K|Q|k|q]{1,4})\s(-|[a-h][1-8])\s(\d+\s\d+)$");
+        private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
         public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         public UInt64 WRooks, BRooks, WKnights, BKnights, WBishops, BBishops, WKing, BKing, WQueen, BQueen, WPawns, BPawns;
