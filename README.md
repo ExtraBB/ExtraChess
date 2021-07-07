@@ -1,4 +1,6 @@
 # ExtraChess
+![Build and Tests](https://github.com/ExtraBB/ExtraChess/actions/workflows/ExtraChess.yml/badge.svg)
+
 ExtraChess is a UCI-based .NET Core Chess engine. It uses .NET6 as backing framework.
 
 ## Engine
