@@ -10,6 +10,14 @@ using System.Threading.Tasks;
 
 namespace ExtraChess.Analysis
 {
+    public class MoveSet
+    {
+        public int Score { get; set; }
+        public MoveSet PreviousMoveSet { get; set; }
+        public Move Move { get; set; }
+        public Board Board { get; set; }
+    }
+
     public static class MoveAnalyzer
     {
         private static Random random = new Random();
@@ -18,9 +26,9 @@ namespace ExtraChess.Analysis
         public delegate void BestMoveFoundEventHandler(Move move);
         public static event BestMoveFoundEventHandler BestMoveFound;
 
-        public static void StartAnalysis(Board board, long calculateForMillis = long.MaxValue)
+        public static async void StartAnalysis(Board board, long calculateForMillis = long.MaxValue)
         {
-            if(IsAnalyzing)
+            if (IsAnalyzing)
             {
                 return;
             }
@@ -29,17 +37,58 @@ namespace ExtraChess.Analysis
             {
                 IsAnalyzing = true;
 
-                Stopwatch watch = new Stopwatch();
-                watch.Start();
-
-                while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
+                await Task.Run(() =>
                 {
-                    Move bestMove = GetRandomMove(board);
-                    BestMoveFound?.Invoke(bestMove);
-                    break;
-                }
+                    Stopwatch watch = new Stopwatch();
+                    watch.Start();
 
-                watch.Stop();
+                    Dictionary<int, List<MoveSet>> movesByDepth = new Dictionary<int, List<MoveSet>>();
+                    int depth = 0;
+
+                    // Initialize with first moves
+                    movesByDepth.Add(depth, new List<MoveSet>());
+                    foreach (Move move in MoveGenerator.GenerateMoves(board))
+                    {
+                        Board nextBoard = board.PreviewMove(move);
+                        movesByDepth[depth].Add(new MoveSet()
+                        {
+                            Move = move,
+                            Board = nextBoard,
+                            Score = GetBoardScore(nextBoard, board.CurrentPlayer),
+                            PreviousMoveSet = null
+                        });
+                    }
+
+                    // Search moves BFS
+                    while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
+                    {
+                        depth++;
+                        movesByDepth.Add(depth, new List<MoveSet>());
+
+                        foreach (MoveSet moveSet in movesByDepth[depth - 1])
+                        {
+                            foreach (Move move in MoveGenerator.GenerateMoves(moveSet.Board))
+                            {
+                                Board nextBoard = moveSet.Board.PreviewMove(move);
+                                movesByDepth[depth].Add(new MoveSet()
+                                {
+                                    PreviousMoveSet = moveSet,
+                                    Move = move,
+                                    Board = nextBoard,
+                                    Score = GetBoardScore(nextBoard, board.CurrentPlayer)
+                                });
+                            }
+
+                            if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
+                            {
+                                break;
+                            }
+                        }
+                    }
+
+                    BestMoveFound?.Invoke(FindBestMoveInSet(movesByDepth));
+                    watch.Stop();
+                });
             }
             finally
             {
@@ -47,15 +96,26 @@ namespace ExtraChess.Analysis
             }
         }
 
+        private static Move FindBestMoveInSet(Dictionary<int, List<MoveSet>> set)
+        {
+            var groups = set[set.Keys.Count - 1].GroupBy(set =>
+            {
+                var startSet = set.PreviousMoveSet;
+                while (startSet.PreviousMoveSet != null)
+                {
+                    startSet = startSet.PreviousMoveSet;
+                }
+                return startSet;
+            });
+
+            var bestGroup = groups.MaxBy(g => g.Average(set => set.Score));
+
+            return bestGroup.Key.Move;
+        }
+
         public static void StopAnalysis()
         {
             IsAnalyzing = false;
-        }
-
-        private static Move GetRandomMove(Board board)
-        {
-            Move[] moves = MoveGenerator.GenerateMoves(board).ToArray();
-            return moves[random.Next(moves.Length)];
         }
 
         public static bool IsLegalMove(Board board, Move move, Player player)
@@ -64,6 +124,26 @@ namespace ExtraChess.Analysis
             return player == Player.White
                 ? !copy.SquareIsInCheck(copy.WKing, player)
                 : !copy.SquareIsInCheck(copy.BKing, player);
+        }
+
+        public static int GetBoardScore(Board board, Player player)
+        {
+            int score = 0;
+            int playerFactor = (int)player;
+
+            score += board.WPawns.GetBitsSet().Count() * playerFactor;
+            score += board.WBishops.GetBitsSet().Count() * 3 * playerFactor;
+            score += board.WKnights.GetBitsSet().Count() * 3 * playerFactor;
+            score += board.WRooks.GetBitsSet().Count() * 5 * playerFactor;
+            score += board.WQueen.GetBitsSet().Count() * 9 * playerFactor;
+
+            score += board.BPawns.GetBitsSet().Count() * -playerFactor;
+            score += board.BBishops.GetBitsSet().Count() * 3 * -playerFactor;
+            score += board.BKnights.GetBitsSet().Count() * 3 * -playerFactor;
+            score += board.BRooks.GetBitsSet().Count() * 5 * -playerFactor;
+            score += board.BQueen.GetBitsSet().Count() * 9 * -playerFactor;
+
+            return score;
         }
     }
 }
