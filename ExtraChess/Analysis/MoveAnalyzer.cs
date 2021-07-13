@@ -42,51 +42,27 @@ namespace ExtraChess.Analysis
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
 
-                    Dictionary<int, List<MoveSet>> movesByDepth = new Dictionary<int, List<MoveSet>>();
-                    int depth = 0;
+                    int depth = 1;
 
-                    // Initialize with first moves
-                    movesByDepth.Add(depth, new List<MoveSet>());
-                    foreach (Move move in MoveGenerator.GenerateMoves(board))
-                    {
-                        Board nextBoard = board.PreviewMove(move);
-                        movesByDepth[depth].Add(new MoveSet()
-                        {
-                            Move = move,
-                            Board = nextBoard,
-                            Score = GetBoardScore(nextBoard, board.CurrentPlayer),
-                            PreviousMoveSet = null
-                        });
-                    }
+                    var moves = MoveGenerator.GenerateMoves(board);
+                    Dictionary<Move, double> result = new Dictionary<Move, double>();
 
-                    // Search moves BFS
+                    // Search moves (DFS, iterative deepening)
                     while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
                     {
-                        depth++;
-                        movesByDepth.Add(depth, new List<MoveSet>());
-
-                        foreach (MoveSet moveSet in movesByDepth[depth - 1])
+                        foreach (Move move in moves)
                         {
-                            foreach (Move move in MoveGenerator.GenerateMoves(moveSet.Board))
-                            {
-                                Board nextBoard = moveSet.Board.PreviewMove(move);
-                                movesByDepth[depth].Add(new MoveSet()
-                                {
-                                    PreviousMoveSet = moveSet,
-                                    Move = move,
-                                    Board = nextBoard,
-                                    Score = GetBoardScore(nextBoard, board.CurrentPlayer)
-                                });
-                            }
+                            result[move] = FindMoveScoreDFS(board.PreviewMove(move), board.CurrentPlayer, depth);
 
                             if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
                             {
                                 break;
                             }
                         }
+                        depth++;
                     }
 
-                    BestMoveFound?.Invoke(FindBestMoveInSet(movesByDepth));
+                    BestMoveFound?.Invoke(result.MaxBy(kvp => kvp.Value).Key);
                     watch.Stop();
                 });
             }
@@ -96,21 +72,21 @@ namespace ExtraChess.Analysis
             }
         }
 
-        private static Move FindBestMoveInSet(Dictionary<int, List<MoveSet>> set)
+        private static double FindMoveScoreDFS(Board board, Player player, int depth)
         {
-            var groups = set[set.Keys.Count - 1].GroupBy(set =>
+            if(depth == 0)
+            { 
+                return GetBoardScore(board, player);
+            }
+
+            var moves = MoveGenerator.GenerateMoves(board);
+
+            // Mate
+            if(!moves.Any())
             {
-                var startSet = set.PreviousMoveSet;
-                while (startSet.PreviousMoveSet != null)
-                {
-                    startSet = startSet.PreviousMoveSet;
-                }
-                return startSet;
-            });
-
-            var bestGroup = groups.MaxBy(g => g.Average(set => set.Score));
-
-            return bestGroup.Key.Move;
+                return board.CurrentPlayer == player ? -40 : 40;
+            }
+            return moves.Average(m => FindMoveScoreDFS(board.PreviewMove(m), player, depth - 1));
         }
 
         public static void StopAnalysis()
