@@ -91,5 +91,10 @@ namespace ExtraChess.Models
 
             return result;
         }
+
+        public override string ToString()
+        {
+            return ToUCIMove();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ExtraChess.Generators;
 using ExtraChess.Models;
 using ExtraChess.Moves;
+using ExtraChess.UCI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,8 +21,6 @@ namespace ExtraChess.Analysis
 
     public static class MoveAnalyzer
     {
-        private static Random random = new Random();
-
         public static bool IsAnalyzing { get; private set; }
         public delegate void BestMoveFoundEventHandler(Move move);
         public static event BestMoveFoundEventHandler BestMoveFound;
@@ -42,27 +41,53 @@ namespace ExtraChess.Analysis
                     Stopwatch watch = new Stopwatch();
                     watch.Start();
 
-                    int depth = 1;
+                    int depth = 0;
 
                     var moves = MoveGenerator.GenerateMoves(board);
-                    Dictionary<Move, double> result = new Dictionary<Move, double>();
+                    int bestScore = -int.MaxValue;
+                    Move bestMove = null;
 
                     // Search moves (DFS, iterative deepening)
                     while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
                     {
+                        // Re-analyze best move first
+                        if(bestMove != null)
+                        {
+                            bestScore = -Negamax(board.PreviewMove(bestMove), depth);
+                        }
+
                         foreach (Move move in moves)
                         {
-                            result[move] = FindMoveScoreDFS(board.PreviewMove(move), board.CurrentPlayer, depth);
+                            if(move == bestMove)
+                            {
+                                continue;
+                            }
+
+                            int score = -Negamax(board.PreviewMove(move), depth);
+
+                            if (score > bestScore)
+                            {
+                                bestMove = move;
+                                bestScore = score;
+                            }
 
                             if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
                             {
                                 break;
                             }
                         }
+
+                        UCISender.SendInfo(depth: depth, pv: bestMove, score: bestScore, time: watch.ElapsedMilliseconds);
+
+                        if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
+                        {
+                            break;
+                        }
+
                         depth++;
                     }
 
-                    BestMoveFound?.Invoke(result.MaxBy(kvp => kvp.Value).Key);
+                    BestMoveFound?.Invoke(bestMove);
                     watch.Stop();
                 });
             }
@@ -72,21 +97,24 @@ namespace ExtraChess.Analysis
             }
         }
 
-        private static double FindMoveScoreDFS(Board board, Player player, int depth)
+        private static int Negamax(Board board, int depth)
         {
             if(depth == 0)
             { 
-                return GetBoardScore(board, player);
+                return Evaluate(board);
             }
 
-            var moves = MoveGenerator.GenerateMoves(board);
+            int max = -int.MaxValue;
 
-            // Mate
-            if(!moves.Any())
+            foreach(Move move in MoveGenerator.GenerateMoves(board))
             {
-                return board.CurrentPlayer == player ? -40 : 40;
+                int score = -Negamax(board.PreviewMove(move), depth - 1);
+                if (score > max)
+                {
+                    max = score;
+                }
             }
-            return moves.Average(m => FindMoveScoreDFS(board.PreviewMove(m), player, depth - 1));
+            return max;
         }
 
         public static void StopAnalysis()
@@ -102,24 +130,23 @@ namespace ExtraChess.Analysis
                 : !copy.SquareIsInCheck(copy.BKing, player);
         }
 
-        public static int GetBoardScore(Board board, Player player)
+        public static int Evaluate(Board board)
         {
             int score = 0;
-            int playerFactor = (int)player;
 
-            score += board.WPawns.GetBitsSet().Count() * playerFactor;
-            score += board.WBishops.GetBitsSet().Count() * 3 * playerFactor;
-            score += board.WKnights.GetBitsSet().Count() * 3 * playerFactor;
-            score += board.WRooks.GetBitsSet().Count() * 5 * playerFactor;
-            score += board.WQueen.GetBitsSet().Count() * 9 * playerFactor;
+            score += board.WPawns.GetBitsSet().Count() * 100;
+            score += board.WBishops.GetBitsSet().Count() * 300;
+            score += board.WKnights.GetBitsSet().Count() * 300;
+            score += board.WRooks.GetBitsSet().Count() * 500;
+            score += board.WQueen.GetBitsSet().Count() * 900;
 
-            score += board.BPawns.GetBitsSet().Count() * -playerFactor;
-            score += board.BBishops.GetBitsSet().Count() * 3 * -playerFactor;
-            score += board.BKnights.GetBitsSet().Count() * 3 * -playerFactor;
-            score += board.BRooks.GetBitsSet().Count() * 5 * -playerFactor;
-            score += board.BQueen.GetBitsSet().Count() * 9 * -playerFactor;
+            score -= board.BPawns.GetBitsSet().Count() * 100;
+            score -= board.BBishops.GetBitsSet().Count() * 300;
+            score -= board.BKnights.GetBitsSet().Count() * 300;
+            score -= board.BRooks.GetBitsSet().Count() * 500;
+            score -= board.BQueen.GetBitsSet().Count() * 900;
 
-            return score;
+            return score * (int)board.CurrentPlayer;
         }
     }
 }
