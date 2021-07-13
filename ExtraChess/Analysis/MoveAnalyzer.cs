@@ -35,61 +35,11 @@ namespace ExtraChess.Analysis
             try
             {
                 IsAnalyzing = true;
-
-                await Task.Run(() =>
+                Move move = await Task.Run(() => NegamaxRoot(board, calculateForMillis));
+                if (move != null)
                 {
-                    Stopwatch watch = new Stopwatch();
-                    watch.Start();
-
-                    int depth = 0;
-
-                    var moves = MoveGenerator.GenerateMoves(board);
-                    int bestScore = -int.MaxValue;
-                    Move bestMove = null;
-
-                    // Search moves (DFS, iterative deepening)
-                    while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
-                    {
-                        // Re-analyze best move first
-                        if(bestMove != null)
-                        {
-                            bestScore = -Negamax(board.PreviewMove(bestMove), depth);
-                        }
-
-                        foreach (Move move in moves)
-                        {
-                            if(move == bestMove)
-                            {
-                                continue;
-                            }
-
-                            int score = -Negamax(board.PreviewMove(move), depth);
-
-                            if (score > bestScore)
-                            {
-                                bestMove = move;
-                                bestScore = score;
-                            }
-
-                            if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
-                            {
-                                break;
-                            }
-                        }
-
-                        UCISender.SendInfo(depth: depth, pv: bestMove, score: bestScore, time: watch.ElapsedMilliseconds);
-
-                        if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
-                        {
-                            break;
-                        }
-
-                        depth++;
-                    }
-
-                    BestMoveFound?.Invoke(bestMove);
-                    watch.Stop();
-                });
+                    BestMoveFound?.Invoke(move);
+                }
             }
             finally
             {
@@ -97,24 +47,86 @@ namespace ExtraChess.Analysis
             }
         }
 
-        private static int Negamax(Board board, int depth)
+        private static Move NegamaxRoot(Board board, long calculateForMillis = long.MaxValue)
+        {
+            Stopwatch watch = new Stopwatch();
+            watch.Start();
+
+            int depth = 0;
+            var moves = MoveGenerator.GenerateMoves(board);
+            Move bestMove = null;
+
+            // Search moves (DFS, iterative deepening)
+            while (IsAnalyzing && watch.ElapsedMilliseconds < calculateForMillis)
+            {
+                int alpha = -int.MaxValue;
+                int beta = int.MaxValue;
+
+                // Re-analyze best move first
+                if (bestMove != null)
+                {
+                    alpha = -Negamax(board.PreviewMove(bestMove), -beta, -alpha, depth);
+                }
+
+                foreach (Move move in moves)
+                {
+                    if (move == bestMove)
+                    {
+                        continue;
+                    }
+
+                    int score = -Negamax(board.PreviewMove(move), -beta, -alpha, depth);
+
+                    if (score >= beta)
+                    {
+                        break;
+                    }
+                    if (score > alpha)
+                    {
+                        alpha = score;
+                        bestMove = move;
+                    }
+
+                    if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
+                    {
+                        break;
+                    }
+                }
+
+                UCISender.SendInfo(depth: depth, pv: bestMove, score: alpha, time: watch.ElapsedMilliseconds);
+
+                if (!IsAnalyzing || watch.ElapsedMilliseconds > calculateForMillis)
+                {
+                    break;
+                }
+
+                depth++;
+            }
+
+            watch.Stop();
+            return bestMove;
+        }
+
+        private static int Negamax(Board board, int alpha, int beta, int depth)
         {
             if(depth == 0)
             { 
                 return Evaluate(board);
             }
 
-            int max = -int.MaxValue;
-
             foreach(Move move in MoveGenerator.GenerateMoves(board))
             {
-                int score = -Negamax(board.PreviewMove(move), depth - 1);
-                if (score > max)
+                int score = -Negamax(board.PreviewMove(move), -beta, -alpha, depth - 1);
+                if (score >= beta)
                 {
-                    max = score;
+                    return beta;
+                }
+                if (score > alpha)
+                {
+                    alpha = score;
                 }
             }
-            return max;
+            return alpha;
         }
 
         public static void StopAnalysis()
