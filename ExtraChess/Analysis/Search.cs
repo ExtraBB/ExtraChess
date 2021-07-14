@@ -107,10 +107,20 @@ namespace ExtraChess.Analysis
                 return Evaluate.EvaluateBoard(board);
             }
 
+
             var moves = MoveGenerator.GenerateMoves(board);
-            if(!moves.Any())
+            if (!moves.Any())
             {
-                return -int.MaxValue;
+                if (board.SquareIsInCheck(board.CurrentPlayer == Player.White ? board.WKing : board.BKing, board.CurrentPlayer))
+                {
+                    // Checkmate
+                    return -int.MaxValue;
+                }
+                else
+                {
+                    // Stalemate
+                    return 0;
+                }
             }
 
             foreach (Move move in moves)
