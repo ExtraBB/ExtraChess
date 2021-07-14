@@ -20,29 +20,29 @@ namespace ExtraChess.Models
 
     public class Board
     {
+        public Piece[] Pieces = new Piece[64];
+        public UInt64[] BoardByPiece = new UInt64[13];
+        public UInt64[] BoardByColor = new UInt64[2];
+        public UInt64 Occupied;
+        public UInt64 Empty { get => ~Occupied; }
+
         private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
         public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        public UInt64 WRooks, BRooks, WKnights, BKnights, WBishops, BBishops, WKing, BKing, WQueen, BQueen, WPawns, BPawns;
-
-        public UInt64 WhitePieces { get => WRooks | WKnights | WBishops | WKing | WQueen | WPawns; }
-        public UInt64 BlackPieces { get => BRooks | BKnights | BBishops | BKing | BQueen | BPawns; }
-        public UInt64 Empty { get => ~(WhitePieces | BlackPieces); }
-        public UInt64 Occupied { get => WhitePieces | BlackPieces; }
 
         // Attacks
-        public UInt64 WRookAttacks { get => SlidingMoves.GetRookAttackMap(WRooks, Occupied, WhitePieces); set { } }
-        public UInt64 BRookAttacks { get => SlidingMoves.GetRookAttackMap(BRooks, Occupied, BlackPieces); set { } }
-        public UInt64 WBishopAttacks { get => SlidingMoves.GetBishopAttackMap(WBishops, Occupied, WhitePieces); set { } }
-        public UInt64 BBishopAttacks { get => SlidingMoves.GetBishopAttackMap(BBishops, Occupied, BlackPieces); set { } }
-        public UInt64 WQueenAttacks { get => SlidingMoves.GetQueenAttackMap(WQueen, Occupied, WhitePieces); set { } }
-        public UInt64 BQueenAttacks { get => SlidingMoves.GetQueenAttackMap(BQueen, Occupied, BlackPieces); set { } }
-        public UInt64 WPawnAttacks { get => PawnMoves.GetWPawnAttackMap(this); set { } }
-        public UInt64 BPawnAttacks { get => PawnMoves.GetBPawnAttackMap(this); set { } }
-        public UInt64 WKnightAttacks { get => KnightMoves.GetKnightsAttackMap(WKnights, WhitePieces); set { } }
-        public UInt64 BKnightAttacks { get => KnightMoves.GetKnightsAttackMap(BKnights, BlackPieces); set { } }
-        public UInt64 WKingAttacks { get => KingMoves.GetKingAttackMap(WKing, WhitePieces); set { } }
-        public UInt64 BKingAttacks { get => KingMoves.GetKingAttackMap(BKing, BlackPieces); set { } }
+        public UInt64 WRookAttacks { get => SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.WRook], Occupied, BoardByColor[(int)Color.White]); }
+        public UInt64 BRookAttacks { get => SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.BRook], Occupied, BoardByColor[(int)Color.Black]); }
+        public UInt64 WBishopAttacks { get => SlidingMoves.GetBishopAttackMap(BoardByPiece[(int)Piece.WBishop], Occupied, BoardByColor[(int)Color.White]); }
+        public UInt64 BBishopAttacks { get => SlidingMoves.GetBishopAttackMap(BoardByPiece[(int)Piece.BBishop], Occupied, BoardByColor[(int)Color.Black]); }
+        public UInt64 WQueenAttacks { get => SlidingMoves.GetQueenAttackMap(BoardByPiece[(int)Piece.WQueen], Occupied, BoardByColor[(int)Color.White]); }
+        public UInt64 BQueenAttacks { get => SlidingMoves.GetQueenAttackMap(BoardByPiece[(int)Piece.BQueen], Occupied, BoardByColor[(int)Color.Black]); }
+        public UInt64 WPawnAttacks { get => PawnMoves.GetWPawnAttackMap(this); }
+        public UInt64 BPawnAttacks { get => PawnMoves.GetBPawnAttackMap(this); }
+        public UInt64 WKnightAttacks { get => KnightMoves.GetKnightsAttackMap(BoardByPiece[(int)Piece.WKnight], BoardByColor[(int)Color.White]); }
+        public UInt64 BKnightAttacks { get => KnightMoves.GetKnightsAttackMap(BoardByPiece[(int)Piece.BKnight], BoardByColor[(int)Color.Black]); }
+        public UInt64 WKingAttacks { get => KingMoves.GetKingAttackMap(BoardByPiece[(int)Piece.WKing], BoardByColor[(int)Color.White]); }
+        public UInt64 BKingAttacks { get => KingMoves.GetKingAttackMap(BoardByPiece[(int)Piece.BKing], BoardByColor[(int)Color.Black]); }
 
         public UInt64 AllWAttacks { get => WRookAttacks | WBishopAttacks | WQueenAttacks | WPawnAttacks | WKingAttacks | WKnightAttacks; }
         public UInt64 AllBAttacks { get => BRookAttacks | BBishopAttacks | BQueenAttacks | BPawnAttacks | BKingAttacks | BKnightAttacks; }
@@ -101,75 +101,84 @@ namespace ExtraChess.Models
             UpdateFromFEN(fen);
         }
 
-        public List<(int position, Piece piece)> GetAllPiecePositions()
+        private void MovePiece(int fromSquare, int toSquare)
         {
-            List<(int, Piece)> allPieces = new List<(int, Piece)>();
+            UInt64 from = 1UL << fromSquare;
+            UInt64 to = 1UL << toSquare;
+            UInt64 fromTo = from | to;
 
-            for (int i = 0; i < 64; i++)
-            {
-                if (WRooks.NthBitSet(i)) { allPieces.Add((i, Piece.WRook)); continue; }
-                if (WKnights.NthBitSet(i)) { allPieces.Add((i, Piece.WKnight)); continue; }
-                if (WBishops.NthBitSet(i)) { allPieces.Add((i, Piece.WBishop)); continue; }
-                if (WQueen.NthBitSet(i)) { allPieces.Add((i, Piece.WQueen)); continue; }
-                if (WKing.NthBitSet(i)) { allPieces.Add((i, Piece.WKing)); continue; }
-                if (WPawns.NthBitSet(i)) { allPieces.Add((i, Piece.WPawn)); continue; }
+            Piece piece = Pieces[fromSquare];
+            Color color = piece.ToColor();
 
-                if (BRooks.NthBitSet(i)) { allPieces.Add((i, Piece.BRook)); continue; }
-                if (BKnights.NthBitSet(i)) { allPieces.Add((i, Piece.BKnight)); continue; }
-                if (BBishops.NthBitSet(i)) { allPieces.Add((i, Piece.BBishop)); continue; }
-                if (BQueen.NthBitSet(i)) { allPieces.Add((i, Piece.BQueen)); continue; }
-                if (BKing.NthBitSet(i)) { allPieces.Add((i, Piece.BKing)); continue; }
-                if (BPawns.NthBitSet(i)) { allPieces.Add((i, Piece.BPawn)); continue; }
-            }
+            // Make move
+            BoardByPiece[(int)piece] = BoardByPiece[(int)piece].ToggleBits(fromTo);
+            BoardByColor[(int)color] = BoardByColor[(int)color].ToggleBits(fromTo);
+            Occupied = Occupied.ToggleBits(fromTo);
+            Pieces[fromSquare] = Piece.None;
+            Pieces[toSquare] = piece;
+        }
 
-            return allPieces;
+        private void SetPiece(Piece piece, int square)
+        {
+            Color color = piece.ToColor();
+
+            // Make move
+            BoardByPiece[(int)piece] = BoardByPiece[(int)piece].SetBit(square);
+            BoardByColor[(int)color] = BoardByColor[(int)color].SetBit(square);
+            Occupied = Occupied.SetBit(square);
+            Pieces[square] = piece;
+        }
+
+        private void UnsetPiece(Piece piece, int square)
+        {
+            Color color = piece.ToColor();
+
+            // Make move
+            BoardByPiece[(int)piece] = BoardByPiece[(int)piece].UnsetBit(square);
+            BoardByColor[(int)color] = BoardByColor[(int)color].UnsetBit(square);
+            Occupied = Occupied.UnsetBit(square);
+            Pieces[square] = Piece.None;
         }
 
         public void MakeMove(Move move)
         {
+            Piece capturedPiece = Pieces[move.To];
+
             // Reset en passent
             EnPassent = Square.None;
 
-            // Clear to square
-            WRooks = WRooks.UnsetBit(move.To);
-            BRooks = BRooks.UnsetBit(move.To);
-            WKnights = WKnights.UnsetBit(move.To);
-            BKnights = BKnights.UnsetBit(move.To);
-            WBishops = WBishops.UnsetBit(move.To);
-            BBishops = BBishops.UnsetBit(move.To);
-            WQueen = WQueen.UnsetBit(move.To);
-            BQueen = BQueen.UnsetBit(move.To);
-            WKing = WKing.UnsetBit(move.To);
-            BKing = BKing.UnsetBit(move.To);
-            WPawns = WPawns.UnsetBit(move.To);
-            BPawns = BPawns.UnsetBit(move.To);
+            // Process captures
+            if (capturedPiece != Piece.None)
+            {
+                UnsetPiece(capturedPiece, move.To);
 
-            // Update castling rights for captures
-            if(move.To == (int)Square.H8)
-            {
-                BCanCastleKingSide = false;
-            }
-            else if (move.To == (int)Square.A8)
-            {
-                BCanCastleQueenSide = false;
-            }
-            else if (move.To == (int)Square.H1)
-            {
-                WCanCastleKingSide = false;
-            }
-            else if (move.To == (int)Square.A1)
-            {
-                WCanCastleQueenSide = false;
+                // Update castling rights for rook captures
+                if (move.To == (int)Square.H8)
+                {
+                    BCanCastleKingSide = false;
+                }
+                else if (move.To == (int)Square.A8)
+                {
+                    BCanCastleQueenSide = false;
+                }
+                else if (move.To == (int)Square.H1)
+                {
+                    WCanCastleKingSide = false;
+                }
+                else if (move.To == (int)Square.A1)
+                {
+                    WCanCastleQueenSide = false;
+                }
             }
 
-            // Make move for correct bitboard
-            UInt64 from = 1UL << move.From;
-            UInt64 to = 1UL << move.To;
+            // Move piece, update bitboards
+            MovePiece(move.From, move.To);
+
+            // Process move specific state
             switch (move.Piece)
             {
                 case Piece.WRook:
                     {
-                        WRooks = (WRooks ^ from) | to;
                         if (move.From == 0)
                         {
                             WCanCastleQueenSide = false;
@@ -182,7 +191,6 @@ namespace ExtraChess.Models
                     }
                 case Piece.BRook:
                     {
-                        BRooks = (BRooks ^ from) | to;
                         if (move.From == 56)
                         {
                             BCanCastleQueenSide = false;
@@ -193,44 +201,40 @@ namespace ExtraChess.Models
                         }
                         break;
                     }
-                case Piece.WKnight: WKnights = (WKnights ^ from) | to; break;
-                case Piece.BKnight: BKnights = (BKnights ^ from) | to; break;
-                case Piece.WBishop: WBishops = (WBishops ^ from) | to; break;
-                case Piece.BBishop: BBishops = (BBishops ^ from) | to; break;
-                case Piece.WQueen: WQueen = (WQueen ^ from) | to; break;
-                case Piece.BQueen: BQueen = (BQueen ^ from) | to; break;
                 case Piece.WKing:
                     {
-                        WKing = (WKing ^ from) | to;
                         WCanCastleKingSide = false;
                         WCanCastleQueenSide = false;
                         if (move.SpecialMove == SpecialMove.Castling)
                         {
                             if (move.To > move.From)
                             {
-                                WRooks = WRooks.UnsetBit((int)Square.H1).SetBit((int)Square.F1);
+                                UnsetPiece(Piece.WRook, (int)Square.H1);
+                                SetPiece(Piece.WRook, (int)Square.F1);
                             }
                             else
                             {
-                                WRooks = WRooks.UnsetBit((int)Square.A1).SetBit((int)Square.D1);
+                                UnsetPiece(Piece.WRook, (int)Square.A1);
+                                SetPiece(Piece.WRook, (int)Square.D1);
                             }
                         }
                         break;
                     }
                 case Piece.BKing:
                     {
-                        BKing = (BKing ^ from) | to;
                         BCanCastleKingSide = false;
                         BCanCastleQueenSide = false;
                         if (move.SpecialMove == SpecialMove.Castling)
                         {
                             if (move.To > move.From)
                             {
-                                BRooks = BRooks.UnsetBit((int)Square.H8).SetBit((int)Square.F8);
+                                UnsetPiece(Piece.BRook, (int)Square.H8);
+                                SetPiece(Piece.BRook, (int)Square.F8);
                             }
                             else
                             {
-                                BRooks = BRooks.UnsetBit((int)Square.A8).SetBit((int)Square.D8);
+                                UnsetPiece(Piece.BRook, (int)Square.A8);
+                                SetPiece(Piece.BRook, (int)Square.D8);
                             }
                         }
                         break;
@@ -242,20 +246,19 @@ namespace ExtraChess.Models
                             EnPassent = (Square)move.To - 8;
                         }
 
-                        WPawns = (WPawns ^ from) | to;
                         if (move.SpecialMove == SpecialMove.EnPassant)
                         {
-                            BPawns = BPawns.UnsetBit(move.To - 8);
+                            UnsetPiece(Piece.BPawn, move.To - 8);
                         }
                         else if (move.SpecialMove == SpecialMove.Promotion)
                         {
-                            WPawns = WPawns.UnsetBit(move.To);
+                            UnsetPiece(Piece.BPawn, move.To);
                             switch (move.PromotionType)
                             {
-                                case PromotionType.Queen: WQueen = WQueen.SetBit(move.To); break;
-                                case PromotionType.Knight: WKnights = WKnights.SetBit(move.To); break;
-                                case PromotionType.Bishop: WBishops = WBishops.SetBit(move.To); break;
-                                case PromotionType.Rook: WRooks = WRooks.SetBit(move.To); break;
+                                case PromotionType.Queen: SetPiece(Piece.WQueen, move.To); break;
+                                case PromotionType.Knight: SetPiece(Piece.WKnight, move.To); break;
+                                case PromotionType.Bishop: SetPiece(Piece.WBishop, move.To); break;
+                                case PromotionType.Rook: SetPiece(Piece.WRook, move.To); break;
                             }
                         }
                         break;
@@ -267,28 +270,26 @@ namespace ExtraChess.Models
                             EnPassent = (Square)move.To + 8;
                         }
 
-                        BPawns = (BPawns ^ from) | to;
                         if (move.SpecialMove == SpecialMove.EnPassant)
                         {
-                            WPawns = WPawns.UnsetBit(move.To + 8);
+                            UnsetPiece(Piece.WPawn, move.To + 8);
                         }
                         else if (move.SpecialMove == SpecialMove.Promotion)
                         {
-                            BPawns = BPawns.UnsetBit(move.To);
+                            UnsetPiece(Piece.BPawn, move.To);
                             switch (move.PromotionType)
                             {
-                                case PromotionType.Queen: BQueen = BQueen.SetBit(move.To); break;
-                                case PromotionType.Knight: BKnights = BKnights.SetBit(move.To); break;
-                                case PromotionType.Bishop: BBishops = BBishops.SetBit(move.To); break;
-                                case PromotionType.Rook: BRooks = BRooks.SetBit(move.To); break;
+                                case PromotionType.Queen: SetPiece(Piece.BQueen, move.To); break;
+                                case PromotionType.Knight: SetPiece(Piece.BKnight, move.To); break;
+                                case PromotionType.Bishop: SetPiece(Piece.BBishop, move.To); break;
+                                case PromotionType.Rook: SetPiece(Piece.BRook, move.To); break;
                             }
                         }
                         break;
                     }
             }
 
-            bool isCapture = (to & (CurrentPlayer == Player.White ? BlackPieces : WhitePieces)) != 0;
-            if(move.Piece == Piece.WPawn || move.Piece == Piece.BPawn || isCapture)
+            if(move.Piece == Piece.WPawn || move.Piece == Piece.BPawn || capturedPiece != Piece.None)
             {
                 HalfMoves = 0;
             }
@@ -304,6 +305,16 @@ namespace ExtraChess.Models
         public Board PreviewMove(Move move)
         {
             Board copy = this.MemberwiseClone() as Board;
+
+            copy.Pieces = new Piece[64];
+            Array.Copy(Pieces, copy.Pieces, 64);
+
+            copy.BoardByPiece = new UInt64[13];
+            Array.Copy(BoardByPiece, copy.BoardByPiece, 13);
+
+            copy.BoardByColor = new UInt64[2];
+            Array.Copy(BoardByColor, copy.BoardByColor, 2);
+
             copy.MakeMove(move);
             return copy;
         }
@@ -385,20 +396,21 @@ namespace ExtraChess.Models
 
         private void SetPieceForFENChar(char fenChar, int rank, int file)
         {
+            int position = rank * 8 + file;
             switch (fenChar)
             {
-                case 'r': BRooks = BRooks.SetBit(rank * 8 + file); return;
-                case 'n': BKnights = BKnights.SetBit(rank * 8 + file); return;
-                case 'b': BBishops = BBishops.SetBit(rank * 8 + file); return;
-                case 'q': BQueen = BQueen.SetBit(rank * 8 + file); return;
-                case 'k': BKing = BKing.SetBit(rank * 8 + file); return;
-                case 'p': BPawns = BPawns.SetBit(rank * 8 + file); return;
-                case 'R': WRooks = WRooks.SetBit(rank * 8 + file); return;
-                case 'N': WKnights = WKnights.SetBit(rank * 8 + file); return;
-                case 'B': WBishops = WBishops.SetBit(rank * 8 + file); return;
-                case 'Q': WQueen = WQueen.SetBit(rank * 8 + file); return;
-                case 'K': WKing = WKing.SetBit(rank * 8 + file); return;
-                case 'P': WPawns = WPawns.SetBit(rank * 8 + file); return;
+                case 'r': SetPiece(Piece.BRook, position); return;
+                case 'n': SetPiece(Piece.BKnight, position); return;
+                case 'b': SetPiece(Piece.BBishop, position); return;
+                case 'q': SetPiece(Piece.BQueen, position); return;
+                case 'k': SetPiece(Piece.BKing, position); return;
+                case 'p': SetPiece(Piece.BPawn, position); return;
+                case 'R': SetPiece(Piece.WRook, position); return;
+                case 'N': SetPiece(Piece.WKnight, position); return;
+                case 'B': SetPiece(Piece.WBishop, position); return;
+                case 'Q': SetPiece(Piece.WQueen, position); return;
+                case 'K': SetPiece(Piece.WKing, position); return;
+                case 'P': SetPiece(Piece.WPawn, position); return;
                 default: throw new ArgumentException("Invalid FEN position char");
             }
         }
@@ -472,19 +484,22 @@ namespace ExtraChess.Models
 
         private char GetFENCharForPosition(int position)
         {
-            if (BRooks.NthBitSet(position)) return 'r';
-            if (WRooks.NthBitSet(position)) return 'R';
-            if (BKnights.NthBitSet(position)) return 'n';
-            if (WKnights.NthBitSet(position)) return 'N';
-            if (BBishops.NthBitSet(position)) return 'b';
-            if (WBishops.NthBitSet(position)) return 'B';
-            if (BQueen.NthBitSet(position)) return 'q';
-            if (WQueen.NthBitSet(position)) return 'Q';
-            if (BKing.NthBitSet(position)) return 'k';
-            if (WKing.NthBitSet(position)) return 'K';
-            if (BPawns.NthBitSet(position)) return 'p';
-            if (WPawns.NthBitSet(position)) return 'P';
-            return ' ';
+            switch (Pieces[position])
+            {
+                case Piece.BRook: return 'r';
+                case Piece.WRook: return 'R';
+                case Piece.BKnight: return 'n';
+                case Piece.WKnight: return 'N';
+                case Piece.BBishop: return 'b';
+                case Piece.WBishop: return 'B';
+                case Piece.BQueen: return 'q';
+                case Piece.WQueen: return 'Q';
+                case Piece.BKing: return 'k';
+                case Piece.WKing: return 'K';
+                case Piece.BPawn: return 'p';
+                case Piece.WPawn: return 'P';
+                default: return ' ';
+            }
         }
 
         public void Print()

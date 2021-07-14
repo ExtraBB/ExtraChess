@@ -21,7 +21,7 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(32);
 
-            UInt64 singlePush = board.WPawns.NorthOne() & board.Empty;
+            UInt64 singlePush = board.BoardByPiece[(int)Piece.WPawn].NorthOne() & board.Empty;
             UInt64 doublePush = singlePush.NorthOne() & board.Empty & Board.Rank4;
 
             UInt64 promoted = singlePush & Board.Rank8;
@@ -52,7 +52,7 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(32);
 
-            UInt64 singlePush = board.BPawns.SouthOne() & board.Empty;
+            UInt64 singlePush = board.BoardByPiece[(int)Piece.BPawn].SouthOne() & board.Empty;
             UInt64 doublePush = singlePush.SouthOne() & board.Empty & Board.Rank5;
 
             UInt64 promoted = singlePush & Board.Rank1;
@@ -83,8 +83,8 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(16);
 
-            UInt64 capturesWest = ((board.WPawns & ~Board.AFile) << 7) & board.BlackPieces;
-            UInt64 capturesEast = ((board.WPawns & ~Board.HFile) << 9) & board.BlackPieces;
+            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.WPawn] & ~Board.AFile) << 7) & board.BoardByColor[(int)Color.Black];
+            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.WPawn] & ~Board.HFile) << 9) & board.BoardByColor[(int)Color.Black];
 
             foreach (int i in capturesWest.GetBitsSet())
             {
@@ -119,8 +119,8 @@ namespace ExtraChess.Moves
             // En passant
             if (board.EnPassent != Square.None)
             {
-                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent - 9)) & board.WPawns & ~Board.HFile;
-                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent - 7)) & board.WPawns & ~Board.AFile;
+                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent - 9)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.HFile;
+                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent - 7)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.AFile;
 
                 if (possibleCapturerWest != 0)
                 {
@@ -148,8 +148,8 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(16);
 
-            UInt64 capturesWest = ((board.BPawns & ~Board.AFile) >> 9) & board.WhitePieces;
-            UInt64 capturesEast = ((board.BPawns & ~Board.HFile) >> 7) & board.WhitePieces;
+            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.BPawn] & ~Board.AFile) >> 9) & board.BoardByColor[(int)Color.White];
+            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.BPawn] & ~Board.HFile) >> 7) & board.BoardByColor[(int)Color.White];
 
             foreach (int i in capturesWest.GetBitsSet())
             {
@@ -184,8 +184,8 @@ namespace ExtraChess.Moves
             // En passant
             if (board.EnPassent != Square.None)
             {
-                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent + 7)) & board.BPawns & ~Board.HFile;
-                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent + 9)) & board.BPawns & ~Board.AFile;
+                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent + 7)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.HFile;
+                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent + 9)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.AFile;
 
                 if (possibleCapturerWest != 0)
                 {
@@ -211,15 +211,15 @@ namespace ExtraChess.Moves
 
         public static UInt64 GetWPawnAttackMap(Board board)
         {
-            UInt64 capturesWest = ((board.WPawns & ~Board.AFile) << 7) & ~board.WhitePieces;
-            UInt64 capturesEast = ((board.WPawns & ~Board.HFile) << 9) & ~board.WhitePieces;
+            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.WPawn] & ~Board.AFile) << 7) & ~board.BoardByColor[(int)Color.White];
+            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.WPawn] & ~Board.HFile) << 9) & ~board.BoardByColor[(int)Color.White];
             return capturesWest | capturesEast;
         }
 
         public static UInt64 GetBPawnAttackMap(Board board)
         {
-            UInt64 capturesWest = ((board.BPawns & ~Board.AFile) >> 9) & ~board.BlackPieces;
-            UInt64 capturesEast = ((board.BPawns & ~Board.HFile) >> 7) & ~board.BlackPieces;
+            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.BPawn] & ~Board.AFile) >> 9) & ~board.BoardByColor[(int)Color.Black];
+            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.BPawn] & ~Board.HFile) >> 7) & ~board.BoardByColor[(int)Color.Black];
             return capturesWest | capturesEast;
         }
     }

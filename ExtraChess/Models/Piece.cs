@@ -2,8 +2,9 @@ using System;
 
 namespace ExtraChess.Models
 {
-    public enum Piece
+    public enum Piece : int
     {
+        None,
         WPawn,
         BPawn,
         WKnight,

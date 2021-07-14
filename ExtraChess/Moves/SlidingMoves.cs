@@ -12,9 +12,9 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.WBishops.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.WBishop].GetBitsSet())
             {
-                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
+                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WBishop));
             }
 
@@ -25,9 +25,9 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.BBishops.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.BBishop].GetBitsSet())
             {
-                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
+                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BBishop));
             }
 
@@ -38,9 +38,9 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.WRooks.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.WRook].GetBitsSet())
             {
-                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
+                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WRook));
             }
 
@@ -51,9 +51,9 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.BRooks.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.BRook].GetBitsSet())
             {
-                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
+                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BRook));
             }
 
@@ -64,10 +64,10 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.WQueen.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.WQueen].GetBitsSet())
             {
-                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.WhitePieces;
-                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.WhitePieces;
+                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
+                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
             }
 
@@ -78,10 +78,10 @@ namespace ExtraChess.Moves
         {
             IEnumerable<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.BQueen.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.BQueen].GetBitsSet())
             {
-                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BlackPieces;
-                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BlackPieces;
+                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
+                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
             }
 

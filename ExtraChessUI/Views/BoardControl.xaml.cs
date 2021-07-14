@@ -126,12 +126,15 @@ namespace ExtraChessUI.Views
         {
             ResetBoard();
 
-            foreach ((int position, Piece piece) in board.GetAllPiecePositions())
+            for (int i = 0; i < 64; i++)
             {
-                this.Dispatcher.Invoke(() =>
+                if (board.Pieces[i] != Piece.None)
                 {
-                    BoardItems[63 - position].Image = PieceImages[piece];
-                });
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        BoardItems[63 - i].Image = PieceImages[board.Pieces[i]];
+                    });
+                }
             }
         }
     }

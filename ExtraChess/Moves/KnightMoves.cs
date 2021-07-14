@@ -19,9 +19,9 @@ namespace ExtraChess.Moves
 
             IEnumerable<Move> moves = new List<Move>(16);
 
-            foreach (int i in board.BKnights.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.BKnight].GetBitsSet())
             {
-                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BlackPieces;
+                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.Black];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
             }
 
@@ -37,9 +37,9 @@ namespace ExtraChess.Moves
 
             IEnumerable<Move> moves = new List<Move>(16);
 
-            foreach (int i in board.WKnights.GetBitsSet())
+            foreach (int i in board.BoardByPiece[(int)Piece.WKnight].GetBitsSet())
             {
-                UInt64 attacks = KnightMovesLookupTable[i] & ~board.WhitePieces;
+                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.White];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
             }
 

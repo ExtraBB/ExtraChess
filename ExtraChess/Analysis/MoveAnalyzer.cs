@@ -17,8 +17,8 @@ namespace ExtraChess.Analysis
         {
             Board copy = board.PreviewMove(move);
             return player == Player.White
-                ? !copy.SquareIsInCheck(copy.WKing, player)
-                : !copy.SquareIsInCheck(copy.BKing, player);
+                ? !copy.SquareIsInCheck(copy.BoardByPiece[(int)Piece.WKing], player)
+                : !copy.SquareIsInCheck(copy.BoardByPiece[(int)Piece.BKing], player);
         }
     }
 }

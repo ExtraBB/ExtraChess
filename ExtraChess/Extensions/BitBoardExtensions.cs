@@ -52,12 +52,17 @@ namespace ExtraChess
 
         public static UInt64 UnsetBit(this UInt64 value, int n)
         {
-            return value.NthBitSet(n) ? value ^ (1UL << n) : value;
+            return value & ~(1UL << n);
         }
 
         public static UInt64 GetBit(this UInt64 value, int n)
         {
             return value & (1UL << n);
+        }
+
+        public static UInt64 ToggleBits(this UInt64 value, UInt64 bits)
+        {
+            return value ^ bits;
         }
 
         public static int BitCount(this UInt64 value)

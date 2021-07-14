@@ -13,17 +13,17 @@ namespace ExtraChess.Analysis
         {
             int score = 0;
 
-            score += board.WPawns.GetBitsSet().Count() * 100;
-            score += board.WBishops.GetBitsSet().Count() * 300;
-            score += board.WKnights.GetBitsSet().Count() * 300;
-            score += board.WRooks.GetBitsSet().Count() * 500;
-            score += board.WQueen.GetBitsSet().Count() * 900;
+            score += board.BoardByPiece[(int)Piece.WPawn].GetBitsSet().Count() * 100;
+            score += board.BoardByPiece[(int)Piece.WBishop].GetBitsSet().Count() * 300;
+            score += board.BoardByPiece[(int)Piece.WKnight].GetBitsSet().Count() * 300;
+            score += board.BoardByPiece[(int)Piece.WRook].GetBitsSet().Count() * 500;
+            score += board.BoardByPiece[(int)Piece.WQueen].GetBitsSet().Count() * 900;
 
-            score -= board.BPawns.GetBitsSet().Count() * 100;
-            score -= board.BBishops.GetBitsSet().Count() * 300;
-            score -= board.BKnights.GetBitsSet().Count() * 300;
-            score -= board.BRooks.GetBitsSet().Count() * 500;
-            score -= board.BQueen.GetBitsSet().Count() * 900;
+            score -= board.BoardByPiece[(int)Piece.BPawn].GetBitsSet().Count() * 100;
+            score -= board.BoardByPiece[(int)Piece.BBishop].GetBitsSet().Count() * 300;
+            score -= board.BoardByPiece[(int)Piece.BKnight].GetBitsSet().Count() * 300;
+            score -= board.BoardByPiece[(int)Piece.BRook].GetBitsSet().Count() * 500;
+            score -= board.BoardByPiece[(int)Piece.BQueen].GetBitsSet().Count() * 900;
 
             return score * (int)board.CurrentPlayer;
         }
