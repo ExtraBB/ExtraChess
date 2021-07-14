@@ -14,22 +14,22 @@ namespace ExtraChess
     internal static class EngineState
     {
         internal static Board Board { get; private set; }
-        internal static bool Ready { get => !MoveAnalyzer.IsAnalyzing && !MoveGenerator.IsGenerating && !BoardGenerator.IsGenerating; }
+        internal static bool Ready { get => !Search.IsSearching && !MoveGenerator.IsGenerating && !BoardGenerator.IsGenerating; }
 
         internal static void Initialize()
         {
             Reset();
-            MoveAnalyzer.BestMoveFound += MoveAnalyzer_BestMoveFound;
+            Search.BestMoveFound += Search_BestMoveFound;
         }
 
-        private static void MoveAnalyzer_BestMoveFound(Move move)
+        private static void Search_BestMoveFound(Move move)
         {
             UCISender.SendBestMove(move);
         }
 
         internal static void Stop()
         {
-            MoveAnalyzer.StopAnalysis();
+            Search.Stop();
         }
 
         internal static void IsReady()
