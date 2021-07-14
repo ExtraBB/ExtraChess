@@ -47,5 +47,31 @@ namespace ExtraChess.UCI
         {
             Console.Write(File.ReadAllText("Resources/uci_help_text_en.txt"));
         }
+
+        public static void SendInfo(int depth = -1, long time = -1, Move pv = null, int score = -1)
+        {
+            string info = "info ";
+            if (depth != -1)
+            {
+                info += $"depth {depth} ";
+            }
+
+            if (pv != null)
+            {
+                info += $"move {pv} ";
+            }
+
+            if (score != -1)
+            {
+                info += $"score {score} ";
+            }
+
+            if (time != -1)
+            {
+                info += $"time {time} ";
+            }
+
+            Console.WriteLine(info);
+        }
     }
 }

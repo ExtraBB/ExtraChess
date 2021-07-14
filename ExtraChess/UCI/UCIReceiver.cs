@@ -95,7 +95,7 @@ namespace ExtraChess.UCI
         {
             if(args.Length == 0)
             {
-                MoveAnalyzer.StartAnalysis(EngineState.Board);
+                Search.Start(EngineState.Board);
                 return;
             }
 
@@ -111,12 +111,12 @@ namespace ExtraChess.UCI
                     }
                 case "movetime":
                     {
-                        MoveAnalyzer.StartAnalysis(EngineState.Board, long.Parse(args[1]));
+                        Search.Start(EngineState.Board, long.Parse(args[1]));
                         return;
                     }
                 case "infinite":
                     {
-                        MoveAnalyzer.StartAnalysis(EngineState.Board);
+                        Search.Start(EngineState.Board);
                         return;
                     }
             }
