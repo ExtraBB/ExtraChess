@@ -18,6 +18,18 @@ namespace ExtraChess.Models
         A8, B8, C8, D8, E8, F8, G8, H8, None
     }
 
+    public class BoardState
+    {
+        public Move PlayedMove { get; set; }
+        public Piece CapturedPiece { get; set; }
+        public Square EnPassent { get; set; }
+        public int HalfMoves { get; set; }
+        public bool WCanCastleQueenSide { get; set; }
+        public bool WCanCastleKingSide { get; set; }
+        public bool BCanCastleQueenSide { get; set; }
+        public bool BCanCastleKingSide { get; set; }
+    }
+
     public class Board
     {
         public Piece[] Pieces = new Piece[64];
@@ -86,14 +98,17 @@ namespace ExtraChess.Models
         public bool BCanCastleKingSide { get; private set; } = false;
 
         // Track en passent
-        public Square EnPassent { get; set; } = Square.None;
+        public Square EnPassent { get; private set; } = Square.None;
 
         // Track current player
-        public Player CurrentPlayer { get; set; } = Player.White;
+        public Player CurrentPlayer { get; private set; } = Player.White;
 
         // Track move counts
-        public int HalfMoves { get; set; } = 0;
-        public int FullMoves { get; set; } = 1;
+        public int HalfMoves { get; private set; } = 0;
+        public int FullMoves { get; private set; } = 1;
+
+        // Track last moves
+        Stack<BoardState> PreviousStates = new Stack<BoardState>();
 
         public Board(string fen = StartPos)
         {
@@ -142,7 +157,20 @@ namespace ExtraChess.Models
 
         public void MakeMove(Move move)
         {
+            // Set variables to restore when unmaking move
             Piece capturedPiece = Pieces[move.To];
+            PreviousStates.Push(new BoardState()
+            {
+                PlayedMove = move,
+                CapturedPiece = capturedPiece,
+                EnPassent = EnPassent,
+                BCanCastleKingSide = BCanCastleKingSide,
+                BCanCastleQueenSide = BCanCastleQueenSide,
+                WCanCastleKingSide = WCanCastleKingSide,
+                WCanCastleQueenSide = WCanCastleQueenSide,
+                HalfMoves = HalfMoves
+            });
+
 
             // Reset en passent
             EnPassent = Square.None;
@@ -302,7 +330,114 @@ namespace ExtraChess.Models
             FullMoves++;
         }
 
-        public Board PreviewMove(Move move)
+        public void UnmakeMove()
+        {
+            BoardState PreviousState = PreviousStates.Pop();
+
+            // Reset en passent
+            EnPassent = PreviousState.EnPassent;
+
+            // Restore castling rights
+            BCanCastleKingSide = PreviousState.BCanCastleKingSide;
+            BCanCastleQueenSide = PreviousState.BCanCastleQueenSide;
+            WCanCastleKingSide = PreviousState.WCanCastleKingSide;
+            WCanCastleQueenSide = PreviousState.WCanCastleQueenSide;
+
+            // Process move specific state
+            switch (PreviousState.PlayedMove.Piece)
+            {
+                case Piece.WKing:
+                    {
+                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Castling)
+                        {
+                            if (PreviousState.PlayedMove.To > PreviousState.PlayedMove.From)
+                            {
+                                UnsetPiece(Piece.WRook, (int)Square.F1);
+                                SetPiece(Piece.WRook, (int)Square.H1);
+                            }
+                            else
+                            {
+                                UnsetPiece(Piece.WRook, (int)Square.D1);
+                                SetPiece(Piece.WRook, (int)Square.A1);
+                            }
+                        }
+                        break;
+                    }
+                case Piece.BKing:
+                    {
+                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Castling)
+                        {
+                            if (PreviousState.PlayedMove.To > PreviousState.PlayedMove.From)
+                            {
+                                UnsetPiece(Piece.BRook, (int)Square.F8);
+                                SetPiece(Piece.BRook, (int)Square.H8);
+                            }
+                            else
+                            {
+                                UnsetPiece(Piece.BRook, (int)Square.D8);
+                                SetPiece(Piece.BRook, (int)Square.A8);
+                            }
+                        }
+                        break;
+                    }
+                case Piece.WPawn:
+                    {
+                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.EnPassant)
+                        {
+                            SetPiece(Piece.BPawn, PreviousState.PlayedMove.To - 8);
+                        }
+                        else if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Promotion)
+                        {
+                            switch (PreviousState.PlayedMove.PromotionType)
+                            {
+                                case PromotionType.Queen: UnsetPiece(Piece.WQueen, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Knight: UnsetPiece(Piece.WKnight, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Bishop: UnsetPiece(Piece.WBishop, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Rook: UnsetPiece(Piece.WRook, PreviousState.PlayedMove.To); break;
+                            }
+
+                            SetPiece(Piece.WPawn, PreviousState.PlayedMove.To);
+                        }
+                        break;
+                    }
+                case Piece.BPawn:
+                    {
+                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.EnPassant)
+                        {
+                            SetPiece(Piece.WPawn, PreviousState.PlayedMove.To + 8);
+                        }
+                        else if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Promotion)
+                        {
+                            switch (PreviousState.PlayedMove.PromotionType)
+                            {
+                                case PromotionType.Queen: UnsetPiece(Piece.BQueen, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Knight: UnsetPiece(Piece.BKnight, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Bishop: UnsetPiece(Piece.BBishop, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Rook: UnsetPiece(Piece.BRook, PreviousState.PlayedMove.To); break;
+                            }
+
+                            SetPiece(Piece.BPawn, PreviousState.PlayedMove.To);
+                        }
+                        break;
+                    }
+            }
+
+
+            // Move piece back, update bitboards
+            MovePiece(PreviousState.PlayedMove.To, PreviousState.PlayedMove.From);
+
+            // Restore captured piece
+            if (PreviousState.CapturedPiece != Piece.None)
+            {
+                SetPiece(PreviousState.CapturedPiece, PreviousState.PlayedMove.To);
+            }
+
+            HalfMoves = PreviousState.HalfMoves;
+            CurrentPlayer = (Player)(-(int)CurrentPlayer);
+            FullMoves--;
+        }
+
+        public Board Clone()
         {
             Board copy = this.MemberwiseClone() as Board;
 
@@ -315,6 +450,12 @@ namespace ExtraChess.Models
             copy.BoardByColor = new UInt64[2];
             Array.Copy(BoardByColor, copy.BoardByColor, 2);
 
+            return copy;
+        }
+
+        public Board PreviewMove(Move move)
+        {
+            Board copy = Clone();
             copy.MakeMove(move);
             return copy;
         }

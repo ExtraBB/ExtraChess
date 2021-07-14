@@ -15,10 +15,12 @@ namespace ExtraChess.Analysis
     {
         public static bool IsLegalMove(Board board, Move move, Player player)
         {
-            Board copy = board.PreviewMove(move);
-            return player == Player.White
-                ? !copy.SquareIsInCheck(copy.BoardByPiece[(int)Piece.WKing], player)
-                : !copy.SquareIsInCheck(copy.BoardByPiece[(int)Piece.BKing], player);
+            board.MakeMove(move);
+            bool legal = player == Player.White
+                ? !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.WKing], player)
+                : !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.BKing], player);
+            board.UnmakeMove();
+            return legal;
         }
     }
 }

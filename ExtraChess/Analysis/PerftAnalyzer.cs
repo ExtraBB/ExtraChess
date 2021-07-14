@@ -24,7 +24,9 @@ namespace ExtraChess.Analysis
             ulong total = 0;
             for (int i = 0; i < moves.Length; i++)
             {
-                total += Perft(board.PreviewMove(moves[i]), depth - 1);
+                board.MakeMove(moves[i]);
+                total += Perft(board, depth - 1);
+                board.UnmakeMove();
             }
 
             return total;
@@ -43,7 +45,10 @@ namespace ExtraChess.Analysis
 
             Parallel.For(0, moves.Length, i =>
             {
-                totals[i] = Perft(board.PreviewMove(moves[i]), depth - 1);
+                Board clone = board.Clone();
+                clone.MakeMove(moves[i]);
+                totals[i] = Perft(clone, depth - 1);
+                clone.UnmakeMove();
             });
 
             return totals.Length > 0 ? totals.Aggregate((a, b) => a + b) : 0;
@@ -56,7 +61,10 @@ namespace ExtraChess.Analysis
 
             Parallel.For(0, moves.Length, i =>
             {
-                result[i] = (moves[i], Perft(board.PreviewMove(moves[i]), depth - 1));
+                Board clone = board.Clone();
+                clone.MakeMove(moves[i]);
+                result[i] = (moves[i], Perft(clone, depth - 1));
+                clone.UnmakeMove();
             });
 
             return result.ToList();
