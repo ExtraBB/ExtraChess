@@ -111,7 +111,7 @@ namespace ExtraChess.Analysis
             var moves = MoveGenerator.GenerateMoves(board);
             if (!moves.Any())
             {
-                if (board.SquareIsInCheck(board.CurrentPlayer == Player.White ? board.BoardByPiece[(int)Piece.WKing] : board.BoardByPiece[(int)Piece.BKing], board.CurrentPlayer))
+                if (board.SquareIsInCheck(board.State.CurrentPlayer == Player.White ? board.BoardByPiece[(int)Piece.WKing] : board.BoardByPiece[(int)Piece.BKing], board.State.CurrentPlayer))
                 {
                     // Checkmate
                     return -int.MaxValue;

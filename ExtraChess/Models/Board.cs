@@ -22,12 +22,14 @@ namespace ExtraChess.Models
     {
         public Move PlayedMove { get; set; }
         public Piece CapturedPiece { get; set; }
-        public Square EnPassent { get; set; }
-        public int HalfMoves { get; set; }
+        public Square EnPassent { get; set; } = Square.None;
+        public Player CurrentPlayer { get; set; } = Player.White;
         public bool WCanCastleQueenSide { get; set; }
         public bool WCanCastleKingSide { get; set; }
         public bool BCanCastleQueenSide { get; set; }
         public bool BCanCastleKingSide { get; set; }
+        public int HalfMoves { get; set; }
+        public int FullMoves { get; set; }
     }
 
     public class Board
@@ -37,10 +39,6 @@ namespace ExtraChess.Models
         public UInt64[] BoardByColor = new UInt64[2];
         public UInt64 Occupied;
         public UInt64 Empty { get => ~Occupied; }
-
-        private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
-        public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
 
         // Attacks
         public UInt64 WRookAttacks { get => SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.WRook], Occupied, BoardByColor[(int)Color.White]); }
@@ -62,6 +60,10 @@ namespace ExtraChess.Models
         /*
         *  Constants
         */
+
+        // FEN
+        private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
+        public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
         // Files
         public const UInt64 AFile = 0x0101010101010101;
@@ -91,23 +93,8 @@ namespace ExtraChess.Models
         public const UInt64 LightSquares = 0x55AA55AA55AA55AA;
         public const UInt64 DarkSquares = 0xAA55AA55AA55AA55;
 
-        // Track castling rights
-        public bool WCanCastleQueenSide { get; private set; } = false;
-        public bool WCanCastleKingSide { get; private set; } = false;
-        public bool BCanCastleQueenSide { get; private set; } = false;
-        public bool BCanCastleKingSide { get; private set; } = false;
-
-        // Track en passent
-        public Square EnPassent { get; private set; } = Square.None;
-
-        // Track current player
-        public Player CurrentPlayer { get; private set; } = Player.White;
-
-        // Track move counts
-        public int HalfMoves { get; private set; } = 0;
-        public int FullMoves { get; private set; } = 1;
-
-        // Track last moves
+        // Track state
+        public BoardState State { get; private set; } = new BoardState();
         Stack<BoardState> PreviousStates = new Stack<BoardState>();
 
         public Board(string fen = StartPos)
@@ -159,21 +146,25 @@ namespace ExtraChess.Models
         {
             // Set variables to restore when unmaking move
             Piece capturedPiece = Pieces[move.To];
-            PreviousStates.Push(new BoardState()
+
+            PreviousStates.Push(State);
+            State = new BoardState()
             {
+                CurrentPlayer = State.CurrentPlayer,
                 PlayedMove = move,
                 CapturedPiece = capturedPiece,
-                EnPassent = EnPassent,
-                BCanCastleKingSide = BCanCastleKingSide,
-                BCanCastleQueenSide = BCanCastleQueenSide,
-                WCanCastleKingSide = WCanCastleKingSide,
-                WCanCastleQueenSide = WCanCastleQueenSide,
-                HalfMoves = HalfMoves
-            });
+                EnPassent = State.EnPassent,
+                BCanCastleKingSide = State.BCanCastleKingSide,
+                BCanCastleQueenSide = State.BCanCastleQueenSide,
+                WCanCastleKingSide = State.WCanCastleKingSide,
+                WCanCastleQueenSide = State.WCanCastleQueenSide,
+                HalfMoves = State.HalfMoves,
+                FullMoves = State.FullMoves
+            };
 
 
             // Reset en passent
-            EnPassent = Square.None;
+            State.EnPassent = Square.None;
 
             // Process captures
             if (capturedPiece != Piece.None)
@@ -183,19 +174,19 @@ namespace ExtraChess.Models
                 // Update castling rights for rook captures
                 if (move.To == (int)Square.H8)
                 {
-                    BCanCastleKingSide = false;
+                    State.BCanCastleKingSide = false;
                 }
                 else if (move.To == (int)Square.A8)
                 {
-                    BCanCastleQueenSide = false;
+                    State.BCanCastleQueenSide = false;
                 }
                 else if (move.To == (int)Square.H1)
                 {
-                    WCanCastleKingSide = false;
+                    State.WCanCastleKingSide = false;
                 }
                 else if (move.To == (int)Square.A1)
                 {
-                    WCanCastleQueenSide = false;
+                    State.WCanCastleQueenSide = false;
                 }
             }
 
@@ -209,11 +200,11 @@ namespace ExtraChess.Models
                     {
                         if (move.From == 0)
                         {
-                            WCanCastleQueenSide = false;
+                            State.WCanCastleQueenSide = false;
                         }
                         else if (move.From == 7)
                         {
-                            WCanCastleKingSide = false;
+                            State.WCanCastleKingSide = false;
                         }
                         break;
                     }
@@ -221,18 +212,18 @@ namespace ExtraChess.Models
                     {
                         if (move.From == 56)
                         {
-                            BCanCastleQueenSide = false;
+                            State.BCanCastleQueenSide = false;
                         }
                         else if (move.From == 63)
                         {
-                            BCanCastleKingSide = false;
+                            State.BCanCastleKingSide = false;
                         }
                         break;
                     }
                 case Piece.WKing:
                     {
-                        WCanCastleKingSide = false;
-                        WCanCastleQueenSide = false;
+                        State.WCanCastleKingSide = false;
+                        State.WCanCastleQueenSide = false;
                         if (move.SpecialMove == SpecialMove.Castling)
                         {
                             if (move.To > move.From)
@@ -250,8 +241,8 @@ namespace ExtraChess.Models
                     }
                 case Piece.BKing:
                     {
-                        BCanCastleKingSide = false;
-                        BCanCastleQueenSide = false;
+                        State.BCanCastleKingSide = false;
+                        State.BCanCastleQueenSide = false;
                         if (move.SpecialMove == SpecialMove.Castling)
                         {
                             if (move.To > move.From)
@@ -271,7 +262,7 @@ namespace ExtraChess.Models
                     {
                         if (move.To - move.From == 16)
                         {
-                            EnPassent = (Square)move.To - 8;
+                            State.EnPassent = (Square)move.To - 8;
                         }
 
                         if (move.SpecialMove == SpecialMove.EnPassant)
@@ -295,7 +286,7 @@ namespace ExtraChess.Models
                     {
                         if (move.From - move.To == 16)
                         {
-                            EnPassent = (Square)move.To + 8;
+                            State.EnPassent = (Square)move.To + 8;
                         }
 
                         if (move.SpecialMove == SpecialMove.EnPassant)
@@ -319,38 +310,31 @@ namespace ExtraChess.Models
 
             if(move.Piece == Piece.WPawn || move.Piece == Piece.BPawn || capturedPiece != Piece.None)
             {
-                HalfMoves = 0;
+                State.HalfMoves = 0;
             }
             else
             {
-                HalfMoves++;
+                State.HalfMoves++;
             }
 
-            CurrentPlayer = (Player)(-(int)CurrentPlayer);
-            FullMoves++;
+            State.CurrentPlayer = (Player)(-(int)State.CurrentPlayer);
+            State.FullMoves++;
         }
 
         public void UnmakeMove()
         {
-            BoardState PreviousState = PreviousStates.Pop();
-
-            // Reset en passent
-            EnPassent = PreviousState.EnPassent;
-
-            // Restore castling rights
-            BCanCastleKingSide = PreviousState.BCanCastleKingSide;
-            BCanCastleQueenSide = PreviousState.BCanCastleQueenSide;
-            WCanCastleKingSide = PreviousState.WCanCastleKingSide;
-            WCanCastleQueenSide = PreviousState.WCanCastleQueenSide;
+            Move lastMove = State.PlayedMove;
+            Piece lastCapture = State.CapturedPiece;
+            State = PreviousStates.Pop();
 
             // Process move specific state
-            switch (PreviousState.PlayedMove.Piece)
+            switch (lastMove.Piece)
             {
                 case Piece.WKing:
                     {
-                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Castling)
+                        if (lastMove.SpecialMove == SpecialMove.Castling)
                         {
-                            if (PreviousState.PlayedMove.To > PreviousState.PlayedMove.From)
+                            if (lastMove.To > lastMove.From)
                             {
                                 UnsetPiece(Piece.WRook, (int)Square.F1);
                                 SetPiece(Piece.WRook, (int)Square.H1);
@@ -365,9 +349,9 @@ namespace ExtraChess.Models
                     }
                 case Piece.BKing:
                     {
-                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Castling)
+                        if (lastMove.SpecialMove == SpecialMove.Castling)
                         {
-                            if (PreviousState.PlayedMove.To > PreviousState.PlayedMove.From)
+                            if (lastMove.To > lastMove.From)
                             {
                                 UnsetPiece(Piece.BRook, (int)Square.F8);
                                 SetPiece(Piece.BRook, (int)Square.H8);
@@ -382,41 +366,41 @@ namespace ExtraChess.Models
                     }
                 case Piece.WPawn:
                     {
-                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.EnPassant)
+                        if (lastMove.SpecialMove == SpecialMove.EnPassant)
                         {
-                            SetPiece(Piece.BPawn, PreviousState.PlayedMove.To - 8);
+                            SetPiece(Piece.BPawn, lastMove.To - 8);
                         }
-                        else if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Promotion)
+                        else if (lastMove.SpecialMove == SpecialMove.Promotion)
                         {
-                            switch (PreviousState.PlayedMove.PromotionType)
+                            switch (lastMove.PromotionType)
                             {
-                                case PromotionType.Queen: UnsetPiece(Piece.WQueen, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Knight: UnsetPiece(Piece.WKnight, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Bishop: UnsetPiece(Piece.WBishop, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Rook: UnsetPiece(Piece.WRook, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Queen: UnsetPiece(Piece.WQueen, lastMove.To); break;
+                                case PromotionType.Knight: UnsetPiece(Piece.WKnight, lastMove.To); break;
+                                case PromotionType.Bishop: UnsetPiece(Piece.WBishop, lastMove.To); break;
+                                case PromotionType.Rook: UnsetPiece(Piece.WRook, lastMove.To); break;
                             }
 
-                            SetPiece(Piece.WPawn, PreviousState.PlayedMove.To);
+                            SetPiece(Piece.WPawn, lastMove.To);
                         }
                         break;
                     }
                 case Piece.BPawn:
                     {
-                        if (PreviousState.PlayedMove.SpecialMove == SpecialMove.EnPassant)
+                        if (lastMove.SpecialMove == SpecialMove.EnPassant)
                         {
-                            SetPiece(Piece.WPawn, PreviousState.PlayedMove.To + 8);
+                            SetPiece(Piece.WPawn, lastMove.To + 8);
                         }
-                        else if (PreviousState.PlayedMove.SpecialMove == SpecialMove.Promotion)
+                        else if (lastMove.SpecialMove == SpecialMove.Promotion)
                         {
-                            switch (PreviousState.PlayedMove.PromotionType)
+                            switch (lastMove.PromotionType)
                             {
-                                case PromotionType.Queen: UnsetPiece(Piece.BQueen, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Knight: UnsetPiece(Piece.BKnight, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Bishop: UnsetPiece(Piece.BBishop, PreviousState.PlayedMove.To); break;
-                                case PromotionType.Rook: UnsetPiece(Piece.BRook, PreviousState.PlayedMove.To); break;
+                                case PromotionType.Queen: UnsetPiece(Piece.BQueen, lastMove.To); break;
+                                case PromotionType.Knight: UnsetPiece(Piece.BKnight, lastMove.To); break;
+                                case PromotionType.Bishop: UnsetPiece(Piece.BBishop, lastMove.To); break;
+                                case PromotionType.Rook: UnsetPiece(Piece.BRook, lastMove.To); break;
                             }
 
-                            SetPiece(Piece.BPawn, PreviousState.PlayedMove.To);
+                            SetPiece(Piece.BPawn, lastMove.To);
                         }
                         break;
                     }
@@ -424,17 +408,13 @@ namespace ExtraChess.Models
 
 
             // Move piece back, update bitboards
-            MovePiece(PreviousState.PlayedMove.To, PreviousState.PlayedMove.From);
+            MovePiece(lastMove.To, lastMove.From);
 
             // Restore captured piece
-            if (PreviousState.CapturedPiece != Piece.None)
+            if (lastCapture != Piece.None)
             {
-                SetPiece(PreviousState.CapturedPiece, PreviousState.PlayedMove.To);
+                SetPiece(lastCapture, lastMove.To);
             }
-
-            HalfMoves = PreviousState.HalfMoves;
-            CurrentPlayer = (Player)(-(int)CurrentPlayer);
-            FullMoves--;
         }
 
         public Board Clone()
@@ -472,6 +452,19 @@ namespace ExtraChess.Models
                 : (square & AllWAttacks) != 0;
         }
 
+        public bool IsLegalMove(Board board, Move move, Player player)
+        {
+            
+
+            board.MakeMove(move);
+            bool legal = player == Player.White
+                ? !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.WKing], player)
+                : !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.BKing], player);
+            board.UnmakeMove();
+            return legal;
+        }
+
+
         private bool UpdateFromFEN(string fen)
         {
             try
@@ -507,25 +500,25 @@ namespace ExtraChess.Models
                 }
 
                 // Set player
-                CurrentPlayer = split[1] == "w" ? Player.White : Player.Black;
+                State.CurrentPlayer = split[1] == "w" ? Player.White : Player.Black;
 
                 // Set castling rights
                 foreach (char c in split[2])
                 {
-                    if (c == 'K') WCanCastleKingSide = true;
-                    if (c == 'Q') WCanCastleQueenSide = true;
-                    if (c == 'k') BCanCastleKingSide = true;
-                    if (c == 'q') BCanCastleQueenSide = true;
+                    if (c == 'K') State.WCanCastleKingSide = true;
+                    if (c == 'Q') State.WCanCastleQueenSide = true;
+                    if (c == 'k') State.BCanCastleKingSide = true;
+                    if (c == 'q') State.BCanCastleQueenSide = true;
                 }
 
                 // Set en passent
                 if (split[3] != "-")
                 {
-                    EnPassent = (Square)Enum.Parse(typeof(Square), split[3].ToUpper());
+                    State.EnPassent = (Square)Enum.Parse(typeof(Square), split[3].ToUpper());
                 }
 
-                HalfMoves = int.Parse(split[4]);
-                FullMoves = int.Parse(split[5]);
+                State.HalfMoves = int.Parse(split[4]);
+                State.FullMoves = int.Parse(split[5]);
 
                 return true;
             }
@@ -594,31 +587,31 @@ namespace ExtraChess.Models
             sb.Append(' ');
 
             // Append player
-            sb.Append(CurrentPlayer == Player.White ? 'w' : 'b');
+            sb.Append(State.CurrentPlayer == Player.White ? 'w' : 'b');
             sb.Append(' ');
 
             // Append castling rights
-            if(!WCanCastleKingSide && !WCanCastleQueenSide && !BCanCastleKingSide && !BCanCastleQueenSide)
+            if(!State.WCanCastleKingSide && !State.WCanCastleQueenSide && !State.BCanCastleKingSide && !State.BCanCastleQueenSide)
             {
                 sb.Append('-');
             }
             else
             {
-                if (WCanCastleKingSide) sb.Append('K');
-                if (WCanCastleQueenSide) sb.Append('Q');
-                if (BCanCastleKingSide) sb.Append('k');
-                if (BCanCastleQueenSide) sb.Append('q');
+                if (State.WCanCastleKingSide) sb.Append('K');
+                if (State.WCanCastleQueenSide) sb.Append('Q');
+                if (State.BCanCastleKingSide) sb.Append('k');
+                if (State.BCanCastleQueenSide) sb.Append('q');
             }
             sb.Append(' ');
 
             // Append en passent
-            sb.Append(EnPassent != Square.None ? EnPassent.ToString().ToLower() : '-');
+            sb.Append(State.EnPassent != Square.None ? State.EnPassent.ToString().ToLower() : '-');
             sb.Append(' ');
 
             // Append move counts
-            sb.Append(HalfMoves);
+            sb.Append(State.HalfMoves);
             sb.Append(' ');
-            sb.Append(FullMoves);
+            sb.Append(State.FullMoves);
 
             return sb.ToString();
         }

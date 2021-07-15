@@ -72,7 +72,7 @@ namespace ExtraChess.Moves
 
             if(piece == Piece.WKing)
             {
-                if (board.WCanCastleQueenSide)
+                if (board.State.WCanCastleQueenSide)
                 {
                     bool emptyLeft = (0UL.SetBit((int)Square.B1).SetBit((int)Square.C1).SetBit((int)Square.D1) & board.Occupied) == 0;
                     if (emptyLeft && !board.SquareIsInCheck(Square.C1, Player.White) && !board.SquareIsInCheck(Square.D1, Player.White) && !board.SquareIsInCheck(Square.E1, Player.White))
@@ -81,7 +81,7 @@ namespace ExtraChess.Moves
                     }
                 }
 
-                if (board.WCanCastleKingSide)
+                if (board.State.WCanCastleKingSide)
                 {
                     bool emptyRight = (0UL.SetBit((int)Square.F1).SetBit((int)Square.G1) & board.Occupied) == 0;
                     if (emptyRight && !board.SquareIsInCheck(Square.E1, Player.White) && !board.SquareIsInCheck(Square.F1, Player.White) && !board.SquareIsInCheck(Square.G1, Player.White))
@@ -92,7 +92,7 @@ namespace ExtraChess.Moves
             }
             else if(piece == Piece.BKing)
             {
-                if (board.BCanCastleQueenSide)
+                if (board.State.BCanCastleQueenSide)
                 {
                     bool emptyLeft = (0UL.SetBit((int)Square.B8).SetBit((int)Square.C8).SetBit((int)Square.D8) & board.Occupied) == 0;
                     if (emptyLeft && !board.SquareIsInCheck(Square.C8, Player.Black) && !board.SquareIsInCheck(Square.D8, Player.Black) && !board.SquareIsInCheck(Square.E8, Player.Black))
@@ -101,7 +101,7 @@ namespace ExtraChess.Moves
                     }
                 }
 
-                if (board.BCanCastleKingSide)
+                if (board.State.BCanCastleKingSide)
                 {
                     bool emptyRight = (0UL.SetBit((int)Square.F8).SetBit((int)Square.G8) & board.Occupied) == 0;
                     if (emptyRight && !board.SquareIsInCheck(Square.E8, Player.Black) && !board.SquareIsInCheck(Square.F8, Player.Black) && !board.SquareIsInCheck(Square.G8, Player.Black))

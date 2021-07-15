@@ -117,17 +117,17 @@ namespace ExtraChess.Moves
             }
 
             // En passant
-            if (board.EnPassent != Square.None)
+            if (board.State.EnPassent != Square.None)
             {
-                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent - 9)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.HFile;
-                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent - 7)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.AFile;
+                UInt64 possibleCapturerWest = (1UL << ((int)board.State.EnPassent - 9)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.HFile;
+                UInt64 possibleCapturerEast = (1UL << ((int)board.State.EnPassent - 7)) & board.BoardByPiece[(int)Piece.WPawn] & ~Board.AFile;
 
                 if (possibleCapturerWest != 0)
                 {
                     UInt64 destination = possibleCapturerWest << 9;
                     if ((board.Empty & destination) == destination)
                     {
-                        moves.Add(new Move(Piece.WPawn, (int)board.EnPassent - 9, (int)board.EnPassent, specialMove: SpecialMove.EnPassant));
+                        moves.Add(new Move(Piece.WPawn, (int)board.State.EnPassent - 9, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
                 }
 
@@ -136,7 +136,7 @@ namespace ExtraChess.Moves
                     UInt64 destination = possibleCapturerEast << 7;
                     if ((board.Empty & destination) == destination)
                     {
-                        moves.Add(new Move(Piece.WPawn, (int)board.EnPassent - 7, (int)board.EnPassent, specialMove: SpecialMove.EnPassant));
+                        moves.Add(new Move(Piece.WPawn, (int)board.State.EnPassent - 7, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
                 }
             }
@@ -182,17 +182,17 @@ namespace ExtraChess.Moves
             }
 
             // En passant
-            if (board.EnPassent != Square.None)
+            if (board.State.EnPassent != Square.None)
             {
-                UInt64 possibleCapturerWest = (1UL << ((int)board.EnPassent + 7)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.HFile;
-                UInt64 possibleCapturerEast = (1UL << ((int)board.EnPassent + 9)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.AFile;
+                UInt64 possibleCapturerWest = (1UL << ((int)board.State.EnPassent + 7)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.HFile;
+                UInt64 possibleCapturerEast = (1UL << ((int)board.State.EnPassent + 9)) & board.BoardByPiece[(int)Piece.BPawn] & ~Board.AFile;
 
                 if (possibleCapturerWest != 0)
                 {
                     UInt64 destination = possibleCapturerWest >> 7;
                     if ((board.Empty & destination) == destination)
                     {
-                        moves.Add(new Move(Piece.BPawn, (int)board.EnPassent + 7, (int)board.EnPassent, specialMove: SpecialMove.EnPassant));
+                        moves.Add(new Move(Piece.BPawn, (int)board.State.EnPassent + 7, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
                 }
 
@@ -201,7 +201,7 @@ namespace ExtraChess.Moves
                     UInt64 destination = possibleCapturerEast >> 9;
                     if ((board.Empty & destination) == destination)
                     {
-                        moves.Add(new Move(Piece.BPawn, (int)board.EnPassent + 9, (int)board.EnPassent, specialMove: SpecialMove.EnPassant));
+                        moves.Add(new Move(Piece.BPawn, (int)board.State.EnPassent + 9, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
                 }
             }
