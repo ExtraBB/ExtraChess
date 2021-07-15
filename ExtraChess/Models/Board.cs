@@ -20,7 +20,7 @@ namespace ExtraChess.Models
         public int FullMoves { get; set; }
         public UInt64[] Attacks { get; } = new UInt64[2];
         public UInt64[] Blockers { get; } = new UInt64[2];
-        public UInt64[] Pinners { get; } = new UInt64[2];
+        public List<(Piece piece, UInt64 position)>[] Checkers { get; } = new List<(Piece piece, UInt64 position)>[2];
     }
 
     public class Board
@@ -282,6 +282,8 @@ namespace ExtraChess.Models
 
             State.CurrentPlayer = (Player)(-(int)State.CurrentPlayer);
             State.FullMoves++;
+
+            UpdateAttacks();
         }
 
         public void UnmakeMove()
@@ -417,12 +419,12 @@ namespace ExtraChess.Models
 
         public bool IsLegalMove(Move move)
         {
-            // WIP
             UInt64 to = 1UL << move.To;
             UInt64 from = 1UL << move.From;
 
-            Color playerColor = State.CurrentPlayer == Player.White ? Color.Black : Color.White;
-            UInt64 attacks = State.Attacks[(int)playerColor];
+            Color opponentColor = State.CurrentPlayer == Player.White ? Color.Black : Color.White;
+            Color ownColor = State.CurrentPlayer.ToColor();
+            UInt64 attacks = State.Attacks[(int)opponentColor];
             UInt64 kingUnderThreat = BoardByPiece[State.CurrentPlayer == Player.White ? (int)Piece.WKing : (int)Piece.BKing];
 
             // 1. Check king moves
@@ -432,20 +434,106 @@ namespace ExtraChess.Models
             }
 
             // 2. Check evasions
-            if ((attacks & kingUnderThreat) != 0)
+            if (State.Checkers[(int)opponentColor].Count > 0)
             {
-                // King is in check, must evade or block
+                // If multiple checkers, only king move can save the king
+                if(State.Checkers[(int)opponentColor].Count > 1)
+                {
+                    return false;
+                }
+                else
+                {
+                    var checker = State.Checkers[(int)opponentColor][0];
+                    if (to == checker.position)
+                    {
+                        // Capture the checker
+                        return true;
+                    }
+                    else if (move.SpecialMove == SpecialMove.EnPassant)
+                    {
+                        // Capture with en passant
+                        if(opponentColor == Color.White && to == checker.position << 8)
+                        {
+                            return true;
+                        }
+                        else if (opponentColor == Color.Black && to == checker.position >> 8)
+                        {
+                            return true;
+                        }
+                    }
+                    else if(checker.piece.ToType() == PieceType.Knight || checker.piece.ToType() == PieceType.Pawn)
+                    {
+                        // Knights and pawns can't be blocked.
+                        return false;
+                    }
+                    else
+                    {
+                        // Block the checker
+                        return (to & kingUnderThreat.Between(checker.position)) != 0;
+                    }
+                }
             }
 
-            // 4. Check pins
-
-            // TODO: check en passent
-            if ((State.Blockers[(int)playerColor] & from) != 0 && !kingUnderThreat.IsOnLine(from, to))
+            // 3. Check pins
+            if ((State.Blockers[(int)ownColor] & from) != 0)
             {
-                return false;
+                if(move.SpecialMove == SpecialMove.EnPassant)
+                {
+                    // A pinned pawn making en passant never stays on same line 
+                    return false;
+                }
+                if (!kingUnderThreat.IsOnLine(from, to))
+                {
+                    return false;
+                }
             }
 
             return true;
+        }
+
+        private void UpdateAttacks()
+        {
+            if(State.CurrentPlayer == Player.White)
+            {
+                UInt64 BRookAttacks = SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.BRook], Occupied, BoardByColor[(int)Color.Black]);
+                UInt64 BBishopAttacks = SlidingMoves.GetBishopAttackMap(BoardByPiece[(int)Piece.BBishop], Occupied, BoardByColor[(int)Color.Black]);
+                UInt64 BQueenAttacks = SlidingMoves.GetQueenAttackMap(BoardByPiece[(int)Piece.BQueen], Occupied, BoardByColor[(int)Color.Black]);
+                UInt64 BPawnAttacks = PawnMoves.GetBPawnAttackMap(this);
+                UInt64 BKnightAttacks = KnightMoves.GetKnightsAttackMap(BoardByPiece[(int)Piece.BKnight], BoardByColor[(int)Color.Black]);
+                UInt64 BKingAttacks = KingMoves.GetKingAttackMap(BoardByPiece[(int)Piece.BKing], BoardByColor[(int)Color.Black]);
+
+                State.Attacks[(int)Color.Black] = BRookAttacks | BBishopAttacks | BQueenAttacks | BPawnAttacks | BKnightAttacks | BKingAttacks;
+
+
+                // Find checkers
+                UInt64 WKing = BoardByPiece[(int)Piece.WKing];
+                int WKingPosition = WKing.GetLS1BIndex();
+
+                List<(Piece piece, UInt64 position)> potentialCheckers = new List<(Piece piece, ulong position)>();
+
+                potentialCheckers.Add((Piece.BRook, Constants.Ranks[WKingPosition / 8] & BoardByPiece[(int)Piece.BRook]));
+                potentialCheckers.Add((Piece.BRook, Constants.Files[WKingPosition % 8] & BoardByPiece[(int)Piece.BRook]));
+                potentialCheckers.Add((Piece.BBishop, Constants.DiagonalsLeft[WKingPosition] & BoardByPiece[(int)Piece.BBishop]));
+                potentialCheckers.Add((Piece.BBishop, Constants.DiagonalsRight[WKingPosition] & BoardByPiece[(int)Piece.BBishop]));
+                potentialCheckers.Add((Piece.BQueen, Constants.DiagonalsLeft[WKingPosition] & BoardByPiece[(int)Piece.BQueen]));
+                potentialCheckers.Add((Piece.BQueen, Constants.DiagonalsRight[WKingPosition] & BoardByPiece[(int)Piece.BQueen]));
+                potentialCheckers.Add((Piece.BQueen, Constants.Ranks[WKingPosition / 8] & BoardByPiece[(int)Piece.BQueen]));
+                potentialCheckers.Add((Piece.BQueen, Constants.Files[WKingPosition % 8] & BoardByPiece[(int)Piece.BQueen]));
+
+                // TODO: Knights
+
+                // TODO: Pawns
+
+                // TODO: filter checkers for non-zero and non-blocked only
+
+
+                // TODO: Determine blockers
+                State.Blockers[(int)Color.White] = 0;
+            }
+            else
+            {
+                // TODO: black
+            }
         }
 
         private bool UpdateFromFEN(string fen)

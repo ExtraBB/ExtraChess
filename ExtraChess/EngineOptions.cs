@@ -42,11 +42,6 @@ namespace ExtraChess.UCI
 
         internal static void Debug(string[] args)
         {
-            foreach(var diagonal in Constants.DiagonalsLeft)
-            {
-                diagonal.Print();
-            }
-
             if (args.Length == 1)
             {
                 if (args[0] == "on")

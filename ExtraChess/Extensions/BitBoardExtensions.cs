@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace ExtraChess 
@@ -118,8 +119,31 @@ namespace ExtraChess
             }
 
             // Diagonal
+            if(startRank > endRank && startFile > endFile || startRank < endRank && startFile < endFile)
+            {
+                return (Constants.DiagonalsRightBySquare[start] & square) != 0;
+            }
+            else
+            {
+                return (Constants.DiagonalsLeftBySquare[start] & square) != 0;
+            }
+        }
 
-            return false;
+        // Optimize: pregenerate table for all combinations with line
+        public static UInt64 Between(this UInt64 s1, UInt64 s2)
+        {
+            UInt64 line = Constants.Files
+                .Concat(Constants.Ranks)
+                .Concat(Constants.DiagonalsLeft)
+                .Concat(Constants.DiagonalsRight)
+                .First(l => (l & s1) != 0 && (l & s2) != 0);
+
+
+            int p1 = s1.GetLS1BIndex();
+            int p2 = s2.GetLS1BIndex();
+
+            UInt64 b = line & ((Constants.AllSquares << p1) ^ (Constants.AllSquares << p2));
+            return b & (b - 1); //exclude lsb
         }
 
         public static void Print(this UInt64 value)
