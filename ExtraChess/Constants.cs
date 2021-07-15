@@ -71,6 +71,18 @@ namespace ExtraChess
             0x0100000000000000,
         };
 
+        public static readonly UInt64[] DiagonalsRightBySquare = new UInt64[]
+        {
+             DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5], DiagonalsRight[4], DiagonalsRight[3], DiagonalsRight[2], DiagonalsRight[1], DiagonalsRight[0],
+             DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5], DiagonalsRight[4], DiagonalsRight[3], DiagonalsRight[2], DiagonalsRight[1],
+             DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5], DiagonalsRight[4], DiagonalsRight[3], DiagonalsRight[2],
+             DiagonalsRight[10], DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5], DiagonalsRight[4], DiagonalsRight[3],
+             DiagonalsRight[11], DiagonalsRight[10], DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5], DiagonalsRight[4],
+             DiagonalsRight[12], DiagonalsRight[11], DiagonalsRight[10], DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6], DiagonalsRight[5],
+             DiagonalsRight[13], DiagonalsRight[12], DiagonalsRight[11], DiagonalsRight[10], DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7], DiagonalsRight[6],
+             DiagonalsRight[14], DiagonalsRight[13], DiagonalsRight[12], DiagonalsRight[11], DiagonalsRight[10], DiagonalsRight[9], DiagonalsRight[8], DiagonalsRight[7],
+        };
+
         public static readonly UInt64[] DiagonalsLeft = new UInt64[]
         {
             0x01,
@@ -89,6 +101,18 @@ namespace ExtraChess
             0x4080000000000000,
             0x8000000000000000,
         };
+
+        public static readonly UInt64[] DiagonalsLeftBySquare = new UInt64[]
+{
+             DiagonalsLeft[0], DiagonalsLeft[1], DiagonalsLeft[2], DiagonalsLeft[3], DiagonalsLeft[4], DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7],
+             DiagonalsLeft[1], DiagonalsLeft[2], DiagonalsLeft[3], DiagonalsLeft[4], DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8],
+             DiagonalsLeft[2], DiagonalsLeft[3], DiagonalsLeft[4], DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9],
+             DiagonalsLeft[3], DiagonalsLeft[4], DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10],
+             DiagonalsLeft[4], DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11],
+             DiagonalsLeft[5], DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11], DiagonalsLeft[12],
+             DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11], DiagonalsLeft[12], DiagonalsLeft[13],
+             DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11], DiagonalsLeft[12], DiagonalsLeft[13], DiagonalsLeft[14],
+};
 
         // Diagonals
         public static UInt64 A1H8Diagonal = DiagonalsRight[7];
