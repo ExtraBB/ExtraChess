@@ -209,17 +209,10 @@ namespace ExtraChess.Moves
             return moves;
         }
 
-        public static UInt64 GetWPawnAttackMap(Board board)
+        public static UInt64 GetPawnAttackMap(Color ownColor, UInt64 pawns, UInt64 ownPieces)
         {
-            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.AFile) << 7) & ~board.BoardByColor[(int)Color.White];
-            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.HFile) << 9) & ~board.BoardByColor[(int)Color.White];
-            return capturesWest | capturesEast;
-        }
-
-        public static UInt64 GetBPawnAttackMap(Board board)
-        {
-            UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.AFile) >> 9) & ~board.BoardByColor[(int)Color.Black];
-            UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.HFile) >> 7) & ~board.BoardByColor[(int)Color.Black];
+            UInt64 capturesWest = (ownColor == Color.White ? (pawns & ~Constants.AFile) << 7 : (pawns & ~Constants.AFile) >> 7) & ~ownPieces;
+            UInt64 capturesEast = (ownColor == Color.White ? (pawns & ~Constants.AFile) << 9 : (pawns & ~Constants.AFile) >> 9) & ~ownPieces;
             return capturesWest | capturesEast;
         }
     }

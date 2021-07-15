@@ -61,6 +61,21 @@ namespace ExtraChess.Moves
             return allAttacks;
         }
 
+        public static List<(int, UInt64)> GetSplitKnightsAttackMap(UInt64 knights, UInt64 ownPieces)
+        {
+            if (KnightMovesLookupTable == null)
+            {
+                GenerateKnightMoves();
+            }
+
+            List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
+            foreach (int i in knights.GetBitsSet())
+            {
+                allAttacks.Add((i, KnightMovesLookupTable[i] & ~ownPieces));
+            }
+            return allAttacks;
+        }
+
         private static void GenerateKnightMoves()
         {
             KnightMovesLookupTable = new UInt64[64];
