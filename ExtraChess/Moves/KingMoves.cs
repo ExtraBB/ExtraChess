@@ -49,8 +49,8 @@ namespace ExtraChess.Moves
             for(int i = 0; i < 64; i++)
             {
                 UInt64 kingPosition = 1UL << i;
-                UInt64 kingClippedH = kingPosition & ~Board.HFile; 
-                UInt64 kingClippedA = kingPosition & ~Board.AFile; 
+                UInt64 kingClippedH = kingPosition & ~Constants.HFile; 
+                UInt64 kingClippedA = kingPosition & ~Constants.AFile; 
 
                 UInt64 nw = kingClippedA << 7; 
                 UInt64 n = kingPosition << 8; 

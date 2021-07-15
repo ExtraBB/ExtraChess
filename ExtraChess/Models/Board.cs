@@ -6,18 +6,6 @@ using ExtraChess.Moves;
 
 namespace ExtraChess.Models
 {
-    public enum Square
-    {
-        A1, B1, C1, D1, E1, F1, G1, H1,
-        A2, B2, C2, D2, E2, F2, G2, H2,
-        A3, B3, C3, D3, E3, F3, G3, H3,
-        A4, B4, C4, D4, E4, F4, G4, H4,
-        A5, B5, C5, D5, E5, F5, G5, H5,
-        A6, B6, C6, D6, E6, F6, G6, H6,
-        A7, B7, C7, D7, E7, F7, G7, H7,
-        A8, B8, C8, D8, E8, F8, G8, H8, None
-    }
-
     public class BoardState
     {
         public Move PlayedMove { get; set; }
@@ -30,6 +18,9 @@ namespace ExtraChess.Models
         public bool BCanCastleKingSide { get; set; }
         public int HalfMoves { get; set; }
         public int FullMoves { get; set; }
+        public UInt64[] Attacks { get; } = new UInt64[2];
+        public UInt64[] Blockers { get; } = new UInt64[2];
+        public UInt64[] Pinners { get; } = new UInt64[2];
     }
 
     public class Board
@@ -64,34 +55,6 @@ namespace ExtraChess.Models
         // FEN
         private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
         public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-        // Files
-        public const UInt64 AFile = 0x0101010101010101;
-        public const UInt64 BFile = 0x0202020202020202;
-        public const UInt64 CFile = 0x0404040404040404;
-        public const UInt64 DFile = 0x0808080808080808;
-        public const UInt64 EFile = 0x1010101010101010;
-        public const UInt64 FFile = 0x2020202020202020;
-        public const UInt64 GFile = 0x4040404040404040;
-        public const UInt64 HFile = 0x8080808080808080;
-
-        // Ranks
-        public const UInt64 Rank1 = 0x00000000000000FF;
-        public const UInt64 Rank2 = 0x000000000000FF00;
-        public const UInt64 Rank3 = 0x0000000000FF0000;
-        public const UInt64 Rank4 = 0x00000000FF000000;
-        public const UInt64 Rank5 = 0x000000FF00000000;
-        public const UInt64 Rank6 = 0x0000FF0000000000;
-        public const UInt64 Rank7 = 0x00FF000000000000;
-        public const UInt64 Rank8 = 0xFF00000000000000;
-
-        // Diagonals
-        public const UInt64 A1H8Diagonal = 0x8040201008040201;
-        public const UInt64 H1A8Diagonal = 0x0102040810204080;
-
-        // Colored Squares
-        public const UInt64 LightSquares = 0x55AA55AA55AA55AA;
-        public const UInt64 DarkSquares = 0xAA55AA55AA55AA55;
 
         // Track state
         public BoardState State { get; private set; } = new BoardState();
@@ -452,18 +415,38 @@ namespace ExtraChess.Models
                 : (square & AllWAttacks) != 0;
         }
 
-        public bool IsLegalMove(Board board, Move move, Player player)
+        public bool IsLegalMove(Move move)
         {
-            
+            // WIP
+            UInt64 to = 1UL << move.To;
+            UInt64 from = 1UL << move.From;
 
-            board.MakeMove(move);
-            bool legal = player == Player.White
-                ? !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.WKing], player)
-                : !board.SquareIsInCheck(board.BoardByPiece[(int)Piece.BKing], player);
-            board.UnmakeMove();
-            return legal;
+            Color playerColor = State.CurrentPlayer == Player.White ? Color.Black : Color.White;
+            UInt64 attacks = State.Attacks[(int)playerColor];
+            UInt64 kingUnderThreat = BoardByPiece[State.CurrentPlayer == Player.White ? (int)Piece.WKing : (int)Piece.BKing];
+
+            // 1. Check king moves
+            if (move.Piece.ToType() == PieceType.King)
+            {
+                return (attacks & to) == 0;
+            }
+
+            // 2. Check evasions
+            if ((attacks & kingUnderThreat) != 0)
+            {
+                // King is in check, must evade or block
+            }
+
+            // 4. Check pins
+
+            // TODO: check en passent
+            if ((State.Blockers[(int)playerColor] & from) != 0 && !kingUnderThreat.IsOnLine(from, to))
+            {
+                return false;
+            }
+
+            return true;
         }
-
 
         private bool UpdateFromFEN(string fen)
         {

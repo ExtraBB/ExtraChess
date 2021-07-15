@@ -93,6 +93,35 @@ namespace ExtraChess
             }
         }
 
+        // Assumes only 1 bit is set
+        public static bool IsOnLine(this UInt64 square, UInt64 lineStart, UInt64 lineEnd)
+        {
+            int start = lineStart.GetLS1BIndex();
+            int end = lineEnd.GetLS1BIndex();
+
+            // Horizontal line
+            int startRank = start / 8;
+            int endRank = end / 8;
+            
+            if(startRank == endRank)
+            {
+                return (Constants.Ranks[startRank] & square) != 0;
+            }
+
+            // Vertical line
+            int startFile = start % 8;
+            int endFile = end % 8;
+
+            if (startFile == endFile)
+            {
+                return (Constants.Files[startFile] & square) != 0;
+            }
+
+            // Diagonal
+
+            return false;
+        }
+
         public static void Print(this UInt64 value)
         {
             StringBuilder sb = new StringBuilder();

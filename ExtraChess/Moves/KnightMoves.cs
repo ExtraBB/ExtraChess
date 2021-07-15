@@ -65,15 +65,15 @@ namespace ExtraChess.Moves
         {
             KnightMovesLookupTable = new UInt64[64];
 
-            UInt64 spot_1_clip = ~(Board.AFile | Board.BFile);
-            UInt64 spot_2_clip = ~Board.AFile;
-            UInt64 spot_3_clip = ~Board.HFile;
-            UInt64 spot_4_clip = ~(Board.HFile | Board.GFile);
+            UInt64 spot_1_clip = ~(Constants.AFile | Constants.BFile);
+            UInt64 spot_2_clip = ~Constants.AFile;
+            UInt64 spot_3_clip = ~Constants.HFile;
+            UInt64 spot_4_clip = ~(Constants.HFile | Constants.GFile);
 
-            UInt64 spot_5_clip = ~(Board.HFile | Board.GFile);
-            UInt64 spot_6_clip = ~Board.HFile;
-            UInt64 spot_7_clip = ~Board.AFile;
-            UInt64 spot_8_clip = ~(Board.AFile | Board.BFile);
+            UInt64 spot_5_clip = ~(Constants.HFile | Constants.GFile);
+            UInt64 spot_6_clip = ~Constants.HFile;
+            UInt64 spot_7_clip = ~Constants.AFile;
+            UInt64 spot_8_clip = ~(Constants.AFile | Constants.BFile);
 
             for (int i = 0; i < 64; i++)
             {
