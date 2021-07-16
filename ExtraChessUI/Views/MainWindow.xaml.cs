@@ -122,7 +122,7 @@ namespace ExtraChessUI.Views
             BoardControl.UpdateFromBoard(board);
             viewModel.FEN = board.GenerateFEN();
 
-            if(board.CurrentPlayer == Player.Black && CurrentEngine != null)
+            if(board.State.CurrentPlayer == Player.Black && CurrentEngine != null)
             {
                 int tpm = int.Parse(EngineTPM.Text);
                 CurrentEngine.SendMessage("position fen " + viewModel.FEN);

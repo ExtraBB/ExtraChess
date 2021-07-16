@@ -62,7 +62,7 @@ namespace ExtraChessUI.Game
         {
             if(!PossibleMoves.Any())
             {
-                Winner = (Player)(-(int)Board.CurrentPlayer);
+                Winner = (Player)(-(int)Board.State.CurrentPlayer);
             }
         }
     }

@@ -31,7 +31,7 @@ namespace ExtraChess.Generators
             {
                 IsGenerating = true;
                 Magics.Initialize();
-                if (board.CurrentPlayer == Player.Black)
+                if (board.State.CurrentPlayer == Player.Black)
                 {
                     return PawnMoves.CalculateBPawnMoves(board)
                         .Concat(SlidingMoves.CalculateBBishopMoves(board))
@@ -39,9 +39,9 @@ namespace ExtraChess.Generators
                         .Concat(SlidingMoves.CalculateBQueenMoves(board))
                         .Concat(KingMoves.CalculateBKingMoves(board))
                         .Concat(KnightMoves.CalculateBKnightMoves(board))
-                        .Where(move => MoveAnalyzer.IsLegalMove(board, move, Player.Black));
+                        .Where(move => board.IsLegalMove(move));
                 }
-                else if (board.CurrentPlayer == Player.White)
+                else if (board.State.CurrentPlayer == Player.White)
                 {
                     return PawnMoves.CalculateWPawnMoves(board)
                         .Concat(SlidingMoves.CalculateWBishopMoves(board))
@@ -49,7 +49,7 @@ namespace ExtraChess.Generators
                         .Concat(SlidingMoves.CalculateWQueenMoves(board))
                         .Concat(KingMoves.CalculateWKingMoves(board))
                         .Concat(KnightMoves.CalculateWKnightMoves(board))
-                        .Where(move => MoveAnalyzer.IsLegalMove(board, move, Player.White));
+                        .Where(move => board.IsLegalMove(move));
                 }
                 return null;
             }

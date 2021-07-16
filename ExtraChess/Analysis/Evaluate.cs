@@ -25,7 +25,7 @@ namespace ExtraChess.Analysis
             score -= board.BoardByPiece[(int)Piece.BRook].GetBitsSet().Count() * 500;
             score -= board.BoardByPiece[(int)Piece.BQueen].GetBitsSet().Count() * 900;
 
-            return score * (int)board.CurrentPlayer;
+            return score * (int)board.State.CurrentPlayer;
         }
     }
 }

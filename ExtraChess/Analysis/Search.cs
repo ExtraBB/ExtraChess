@@ -62,7 +62,9 @@ namespace ExtraChess.Analysis
                 // Re-analyze best move first
                 if (bestMove != null)
                 {
-                    bestScore = -Negamax(board.PreviewMove(bestMove), -beta, -alpha, depth);
+                    board.MakeMove(bestMove);
+                    bestScore = -Negamax(board, -beta, -alpha, depth);
+                    board.UnmakeMove();
                 }
 
                 foreach (Move move in moves)
@@ -72,7 +74,9 @@ namespace ExtraChess.Analysis
                         continue;
                     }
 
-                    int score = -Negamax(board.PreviewMove(move), -beta, -alpha, depth);
+                    board.MakeMove(move);
+                    int score = -Negamax(board, -beta, -alpha, depth);
+                    board.UnmakeMove();
 
                     if (score > bestScore)
                     {
@@ -107,11 +111,10 @@ namespace ExtraChess.Analysis
                 return Evaluate.EvaluateBoard(board);
             }
 
-
             var moves = MoveGenerator.GenerateMoves(board);
             if (!moves.Any())
             {
-                if (board.SquareIsInCheck(board.CurrentPlayer == Player.White ? board.BoardByPiece[(int)Piece.WKing] : board.BoardByPiece[(int)Piece.BKing], board.CurrentPlayer))
+                if (board.SquareIsInCheck(board.State.CurrentPlayer == Player.White ? board.BoardByPiece[(int)Piece.WKing] : board.BoardByPiece[(int)Piece.BKing]))
                 {
                     // Checkmate
                     return -int.MaxValue;
@@ -125,7 +128,10 @@ namespace ExtraChess.Analysis
 
             foreach (Move move in moves)
             {
-                int score = -Negamax(board.PreviewMove(move), -beta, -alpha, depth - 1);
+                board.MakeMove(move);
+                int score = -Negamax(board, -beta, -alpha, depth - 1);
+                board.UnmakeMove();
+
                 if (score >= beta)
                 {
                     return beta;
