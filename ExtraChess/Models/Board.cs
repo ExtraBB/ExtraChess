@@ -19,9 +19,10 @@ namespace ExtraChess.Models
         public bool BCanCastleKingSide { get; set; }
         public int HalfMoves { get; set; }
         public int FullMoves { get; set; }
-        public UInt64[] Attacks { get; } = new UInt64[2];
-        public UInt64[] Blockers { get; } = new UInt64[2];
-        public List<(Piece piece, UInt64 position)>[] Checkers { get; } = new List<(Piece piece, UInt64 position)>[2];
+        public UInt64 Attacks { get; set; }
+        public UInt64 Blockers { get; set; }
+        public UInt64 PreviousBlockers { get; set; }
+        public List<(Piece piece, UInt64 position)> Checkers { get; set; } = new List<(Piece piece, UInt64 position)>();
     }
 
     public class Board
@@ -30,41 +31,18 @@ namespace ExtraChess.Models
         public UInt64[] BoardByPiece = new UInt64[13];
         public UInt64[] BoardByColor = new UInt64[2];
         public UInt64 Occupied;
-        public UInt64 Empty { get => ~Occupied; }
-
-        // Attacks
-        public UInt64 WRookAttacks { get => SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.WRook], Occupied, BoardByColor[(int)Color.White]); }
-        public UInt64 BRookAttacks { get => SlidingMoves.GetRookAttackMap(BoardByPiece[(int)Piece.BRook], Occupied, BoardByColor[(int)Color.Black]); }
-        public UInt64 WBishopAttacks { get => SlidingMoves.GetBishopAttackMap(BoardByPiece[(int)Piece.WBishop], Occupied, BoardByColor[(int)Color.White]); }
-        public UInt64 BBishopAttacks { get => SlidingMoves.GetBishopAttackMap(BoardByPiece[(int)Piece.BBishop], Occupied, BoardByColor[(int)Color.Black]); }
-        public UInt64 WQueenAttacks { get => SlidingMoves.GetQueenAttackMap(BoardByPiece[(int)Piece.WQueen], Occupied, BoardByColor[(int)Color.White]); }
-        public UInt64 BQueenAttacks { get => SlidingMoves.GetQueenAttackMap(BoardByPiece[(int)Piece.BQueen], Occupied, BoardByColor[(int)Color.Black]); }
-        public UInt64 WPawnAttacks { get => PawnMoves.GetPawnAttackMap(Color.White, BoardByPiece[(int)Piece.WPawn], BoardByColor[(int)Color.White]); }
-        public UInt64 BPawnAttacks { get => PawnMoves.GetPawnAttackMap(Color.Black, BoardByPiece[(int)Piece.BPawn], BoardByColor[(int)Color.Black]); }
-        public UInt64 WKnightAttacks { get => KnightMoves.GetKnightsAttackMap(BoardByPiece[(int)Piece.WKnight], BoardByColor[(int)Color.White]); }
-        public UInt64 BKnightAttacks { get => KnightMoves.GetKnightsAttackMap(BoardByPiece[(int)Piece.BKnight], BoardByColor[(int)Color.Black]); }
-        public UInt64 WKingAttacks { get => KingMoves.GetKingAttackMap(BoardByPiece[(int)Piece.WKing], BoardByColor[(int)Color.White]); }
-        public UInt64 BKingAttacks { get => KingMoves.GetKingAttackMap(BoardByPiece[(int)Piece.BKing], BoardByColor[(int)Color.Black]); }
-
-        public UInt64 AllWAttacks { get => WRookAttacks | WBishopAttacks | WQueenAttacks | WPawnAttacks | WKingAttacks | WKnightAttacks; }
-        public UInt64 AllBAttacks { get => BRookAttacks | BBishopAttacks | BQueenAttacks | BPawnAttacks | BKingAttacks | BKnightAttacks; }
-
-        /*
-        *  Constants
-        */
+        public BoardState State { get; private set; } = new BoardState();
+        Stack<BoardState> PreviousStates = new Stack<BoardState>();
 
         // FEN
         private readonly Regex FenRegex = new(@"^(?<PiecePlacement>((?<RankItem>[pnbrqkPNBRQK1-8]{1,8})\/?){8})\s+(?<SideToMove>b|w)\s+(?<Castling>-|K?Q?k?q?)\s+(?<EnPassant>-|[a-h][3-6])\s+(?<HalfMoveClock>\d+)\s+(?<FullMoveNumber>\d+)\s*$");
         public const string StartPos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-        // Track state
-        public BoardState State { get; private set; } = new BoardState();
-        Stack<BoardState> PreviousStates = new Stack<BoardState>();
-
         public Board(string fen = StartPos)
         {
             Magics.Initialize();
             UpdateFromFEN(fen);
+            UpdateCheckInfo();
         }
 
         private void MovePiece(int fromSquare, int toSquare)
@@ -123,9 +101,8 @@ namespace ExtraChess.Models
                 WCanCastleKingSide = State.WCanCastleKingSide,
                 WCanCastleQueenSide = State.WCanCastleQueenSide,
                 HalfMoves = State.HalfMoves,
-                FullMoves = State.FullMoves
+                FullMoves = State.FullMoves,
             };
-
 
             // Reset en passent
             State.EnPassent = Square.None;
@@ -396,6 +373,8 @@ namespace ExtraChess.Models
             copy.BoardByColor = new UInt64[2];
             Array.Copy(BoardByColor, copy.BoardByColor, 2);
 
+            copy.PreviousStates = new Stack<BoardState>(PreviousStates);
+
             return copy;
         }
 
@@ -413,77 +392,65 @@ namespace ExtraChess.Models
 
         public bool SquareIsInCheck(UInt64 square, Player playerPossibleInCheck)
         {
-            return playerPossibleInCheck == Player.White
-                ? (square & AllBAttacks) != 0
-                : (square & AllWAttacks) != 0;
+            return (square & State.Attacks) != 0;
         }
 
         public bool IsLegalMove(Move move)
         {
             UInt64 to = 1UL << move.To;
+            UInt64 potentialCapture = move.SpecialMove == SpecialMove.EnPassant ? 1UL << (int)State.EnPassent: to;
             UInt64 from = 1UL << move.From;
 
-            Color opponentColor = State.CurrentPlayer == Player.White ? Color.Black : Color.White;
-            Color ownColor = State.CurrentPlayer.ToColor();
-            UInt64 attacks = State.Attacks[(int)opponentColor];
             UInt64 kingUnderThreat = BoardByPiece[State.CurrentPlayer == Player.White ? (int)Piece.WKing : (int)Piece.BKing];
+
+            bool isPinned = (State.Blockers & from) != 0 || (move.SpecialMove == SpecialMove.EnPassant && (State.PreviousBlockers & from) != 0);
+            bool kingInCheck = State.Checkers.Count > 0;
+
 
             // 1. Check king moves
             if (move.Piece.ToType() == PieceType.King)
             {
-                return (attacks & to) == 0;
+                return (State.Attacks & to) == 0 && (State.Blockers & to) == 0;
             }
 
-            // 2. Check evasions
-            if (State.Checkers[(int)opponentColor].Count > 0)
+            if(move.SpecialMove == SpecialMove.EnPassant)
+            {
+                int x = 1;
+            }
+
+            // 2. King is in check, capture or block
+            if (kingInCheck)
             {
                 // If multiple checkers, only king move can save the king
-                if(State.Checkers[(int)opponentColor].Count > 1)
+                if(State.Checkers.Count > 1)
                 {
+                    return false;
+                }
+
+                var checker = State.Checkers[0];
+
+                // Can capture checker if not pinned or moving on same line as pin
+                if (potentialCapture == checker.position && (!isPinned || kingUnderThreat.IsOnLine(from, to)))
+                {
+                    // Capture the checker
+                    return true;
+                }
+                else if(checker.piece.ToType() == PieceType.Knight || checker.piece.ToType() == PieceType.Pawn)
+                {
+                    // Knights and pawns can't be blocked.
                     return false;
                 }
                 else
                 {
-                    var checker = State.Checkers[(int)opponentColor][0];
-                    if (to == checker.position)
-                    {
-                        // Capture the checker
-                        return true;
-                    }
-                    else if (move.SpecialMove == SpecialMove.EnPassant)
-                    {
-                        // Capture with en passant
-                        if(opponentColor == Color.White && to == checker.position << 8)
-                        {
-                            return true;
-                        }
-                        else if (opponentColor == Color.Black && to == checker.position >> 8)
-                        {
-                            return true;
-                        }
-                    }
-                    else if(checker.piece.ToType() == PieceType.Knight || checker.piece.ToType() == PieceType.Pawn)
-                    {
-                        // Knights and pawns can't be blocked.
-                        return false;
-                    }
-                    else
-                    {
-                        // Block the checker
-                        return (to & kingUnderThreat.Between(checker.position)) != 0;
-                    }
+                    // Block the checker
+                    return (to & kingUnderThreat.Between(checker.position)) != 0 && (!isPinned || kingUnderThreat.IsOnLine(from, to));
                 }
             }
 
-            // 3. Check pins
-            if ((State.Blockers[(int)ownColor] & from) != 0)
+            // 3. Piece is pinned, only move along king-piece ray
+            if (isPinned)
             {
-                if(move.SpecialMove == SpecialMove.EnPassant)
-                {
-                    // A pinned pawn making en passant never stays on same line 
-                    return false;
-                }
-                if (!kingUnderThreat.IsOnLine(from, to))
+                if (move.Piece.ToType() == PieceType.Knight || !kingUnderThreat.IsOnLine(from, to))
                 {
                     return false;
                 }
@@ -506,22 +473,23 @@ namespace ExtraChess.Models
             int opponentKing = State.CurrentPlayer == Player.White ? (int)Piece.BKing : (int)Piece.WKing;
 
             // 1. Determine checkers
-            State.Checkers[opponentColor] = new List<(Piece piece, ulong position)>();
+            State.Checkers = new List<(Piece piece, ulong position)>();
 
             // Split attacks by piece
-            List<(int position, UInt64 attack)> SplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(BoardByPiece[opponentRook], Occupied, BoardByColor[opponentColor]);
-            List<(int position, UInt64 attack)> SplitKnightAttacks = KnightMoves.GetSplitKnightsAttackMap(BoardByPiece[opponentKnight], BoardByColor[opponentColor]);
-            List<(int position, UInt64 attack)> SplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(BoardByPiece[opponentBishop], Occupied, BoardByColor[opponentColor]);
-            List<(int position, UInt64 attack)> SplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(BoardByPiece[opponentQueen], Occupied, BoardByColor[opponentColor]);
+            UInt64 occupiedWithoutKing = Occupied & ~ownKing;
+            List<(int position, UInt64 attack)> SplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(BoardByPiece[opponentRook], occupiedWithoutKing);
+            List<(int position, UInt64 attack)> SplitKnightAttacks = KnightMoves.GetSplitKnightsAttackMap(BoardByPiece[opponentKnight]);
+            List<(int position, UInt64 attack)> SplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(BoardByPiece[opponentBishop], occupiedWithoutKing);
+            List<(int position, UInt64 attack)> SplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(BoardByPiece[opponentQueen], occupiedWithoutKing);
 
             // Add checkers
-            State.Checkers[opponentColor].AddRange(SplitRookAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentRook, 1UL << item.position)));
-            State.Checkers[opponentColor].AddRange(SplitKnightAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentKnight, 1UL << item.position)));
-            State.Checkers[opponentColor].AddRange(SplitBishopAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentBishop, 1UL << item.position)));
-            State.Checkers[opponentColor].AddRange(SplitQueenAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentQueen, 1UL << item.position)));
+            State.Checkers.AddRange(SplitRookAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentRook, 1UL << item.position)));
+            State.Checkers.AddRange(SplitKnightAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentKnight, 1UL << item.position)));
+            State.Checkers.AddRange(SplitBishopAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentBishop, 1UL << item.position)));
+            State.Checkers.AddRange(SplitQueenAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentQueen, 1UL << item.position)));
 
             // Pawn checkers
-            UInt64 PawnAttacks = PawnMoves.GetPawnAttackMap(ownColor, BoardByPiece[opponentPawn], BoardByColor[opponentColor]);
+            UInt64 PawnAttacks = PawnMoves.GetPawnAttackMap((Color)opponentColor, BoardByPiece[opponentPawn]);
 
             if ((PawnAttacks & ownKing) != 0)
             {
@@ -530,12 +498,12 @@ namespace ExtraChess.Models
 
                 if ((BoardByPiece[opponentPawn] & (pawnWest)) != 0)
                 {
-                    State.Checkers[opponentColor].Add(((Piece)opponentPawn, pawnWest));
+                    State.Checkers.Add(((Piece)opponentPawn, pawnWest));
                 }
 
                 if ((BoardByPiece[opponentPawn] & (pawnEast)) != 0)
                 {
-                    State.Checkers[opponentColor].Add(((Piece)opponentPawn, pawnEast));
+                    State.Checkers.Add(((Piece)opponentPawn, pawnEast));
                 }
             }
 
@@ -545,29 +513,46 @@ namespace ExtraChess.Models
             UInt64 QueenAttacks = SplitQueenAttacks.Any() ? SplitQueenAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
             UInt64 KnightAttacks = SplitKnightAttacks.Any() ? SplitKnightAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
             UInt64 KingAttacks = KingMoves.GetKingAttackMap(BoardByPiece[opponentKing], BoardByColor[opponentColor]);
-            State.Attacks[opponentColor] = RookAttacks | BishopAttacks | QueenAttacks | PawnAttacks | KnightAttacks | KingAttacks;
+            State.Attacks = RookAttacks | BishopAttacks | QueenAttacks | PawnAttacks | KnightAttacks | KingAttacks;
 
             // 3. Determine blockers
-            State.Blockers[(int)ownColor] = 0;
+            State.Blockers = FindBlockers(ownKing, Occupied, BoardByPiece[opponentRook], BoardByPiece[opponentBishop], BoardByPiece[opponentQueen]);
 
+            // Generate opponent blockers in case of en passent
+            if(State.EnPassent != Square.None)
+            {
+                // Undo last move
+                MovePiece(State.PlayedMove.To, State.PlayedMove.From);
+
+                // Store blockers when move wasn't played
+                State.PreviousBlockers = FindBlockers(ownKing, Occupied, BoardByPiece[opponentRook], BoardByPiece[opponentBishop], BoardByPiece[opponentQueen]);
+
+                // Redo last move
+                MovePiece(State.PlayedMove.From, State.PlayedMove.To);
+            }
+        }
+
+        private static UInt64 FindBlockers(UInt64 king, UInt64 occupied, UInt64 rooks, UInt64 bishops, UInt64 queens)
+        {
             // Generate attacks if no blockers would exist
-            UInt64 onlyBlackAndWKing = BoardByColor[opponentColor] | ownKing;
-            List<(int position, UInt64 attack)> EmptySplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(BoardByPiece[opponentRook], onlyBlackAndWKing, BoardByColor[opponentColor]);
-            List<(int position, UInt64 attack)> EmptySplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(BoardByPiece[opponentBishop], onlyBlackAndWKing, BoardByColor[opponentColor]);
-            List<(int position, UInt64 attack)> EmptySplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(BoardByPiece[opponentQueen], onlyBlackAndWKing, BoardByColor[opponentColor]);
+            List<(int position, UInt64 attack)> EmptySplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(rooks, rooks | king);
+            List<(int position, UInt64 attack)> EmptySplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(bishops, bishops | king);
+            List<(int position, UInt64 attack)> EmptySplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(queens, queens | king);
 
             // Find single blockers of checks
-            foreach(var item in EmptySplitBishopAttacks.Concat(EmptySplitRookAttacks).Concat(EmptySplitQueenAttacks))
+            UInt64 blockers = 0;
+            foreach (var item in EmptySplitBishopAttacks.Concat(EmptySplitRookAttacks).Concat(EmptySplitQueenAttacks))
             {
-                if((item.attack & ownKing) != 0)
+                if ((item.attack & king) != 0)
                 {
-                    UInt64 blockers = ownKing.Between(1UL << item.position) & Occupied;
-                    if (blockers.BitCount() == 1 && (blockers & BoardByColor[(int)ownColor]) != 0)
+                    UInt64 blocker = king.Between(1UL << item.position) & occupied;
+                    if (blocker.BitCount() == 1)
                     {
-                        State.Blockers[(int)ownColor] |= blockers;
+                        blockers |= blocker;
                     }
                 }
             }
+            return blockers;
         }
 
         private bool UpdateFromFEN(string fen)

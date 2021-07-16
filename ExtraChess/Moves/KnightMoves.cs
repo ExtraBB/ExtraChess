@@ -61,7 +61,7 @@ namespace ExtraChess.Moves
             return allAttacks;
         }
 
-        public static List<(int, UInt64)> GetSplitKnightsAttackMap(UInt64 knights, UInt64 ownPieces)
+        public static List<(int, UInt64)> GetSplitKnightsAttackMap(UInt64 knights)
         {
             if (KnightMovesLookupTable == null)
             {
@@ -71,7 +71,7 @@ namespace ExtraChess.Moves
             List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
             foreach (int i in knights.GetBitsSet())
             {
-                allAttacks.Add((i, KnightMovesLookupTable[i] & ~ownPieces));
+                allAttacks.Add((i, KnightMovesLookupTable[i]));
             }
             return allAttacks;
         }

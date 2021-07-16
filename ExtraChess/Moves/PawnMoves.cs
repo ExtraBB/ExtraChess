@@ -21,8 +21,8 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(32);
 
-            UInt64 singlePush = board.BoardByPiece[(int)Piece.WPawn].NorthOne() & board.Empty;
-            UInt64 doublePush = singlePush.NorthOne() & board.Empty & Constants.Rank4;
+            UInt64 singlePush = board.BoardByPiece[(int)Piece.WPawn].NorthOne() & ~board.Occupied;
+            UInt64 doublePush = singlePush.NorthOne() & ~board.Occupied & Constants.Rank4;
 
             UInt64 promoted = singlePush & Constants.Rank8;
             UInt64 nonPromoted = singlePush & ~promoted;
@@ -52,8 +52,8 @@ namespace ExtraChess.Moves
         {
             List<Move> moves = new List<Move>(32);
 
-            UInt64 singlePush = board.BoardByPiece[(int)Piece.BPawn].SouthOne() & board.Empty;
-            UInt64 doublePush = singlePush.SouthOne() & board.Empty & Constants.Rank5;
+            UInt64 singlePush = board.BoardByPiece[(int)Piece.BPawn].SouthOne() & ~board.Occupied;
+            UInt64 doublePush = singlePush.SouthOne() & ~board.Occupied & Constants.Rank5;
 
             UInt64 promoted = singlePush & Constants.Rank1;
             UInt64 nonPromoted = singlePush & ~promoted;
@@ -125,7 +125,7 @@ namespace ExtraChess.Moves
                 if (possibleCapturerWest != 0)
                 {
                     UInt64 destination = possibleCapturerWest << 9;
-                    if ((board.Empty & destination) == destination)
+                    if ((~board.Occupied & destination) == destination)
                     {
                         moves.Add(new Move(Piece.WPawn, (int)board.State.EnPassent - 9, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
@@ -134,7 +134,7 @@ namespace ExtraChess.Moves
                 if (possibleCapturerEast != 0)
                 {
                     UInt64 destination = possibleCapturerEast << 7;
-                    if ((board.Empty & destination) == destination)
+                    if ((~board.Occupied & destination) == destination)
                     {
                         moves.Add(new Move(Piece.WPawn, (int)board.State.EnPassent - 7, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
@@ -190,7 +190,7 @@ namespace ExtraChess.Moves
                 if (possibleCapturerWest != 0)
                 {
                     UInt64 destination = possibleCapturerWest >> 7;
-                    if ((board.Empty & destination) == destination)
+                    if ((~board.Occupied & destination) == destination)
                     {
                         moves.Add(new Move(Piece.BPawn, (int)board.State.EnPassent + 7, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
@@ -199,7 +199,7 @@ namespace ExtraChess.Moves
                 if (possibleCapturerEast != 0)
                 {
                     UInt64 destination = possibleCapturerEast >> 9;
-                    if ((board.Empty & destination) == destination)
+                    if ((~board.Occupied & destination) == destination)
                     {
                         moves.Add(new Move(Piece.BPawn, (int)board.State.EnPassent + 9, (int)board.State.EnPassent, specialMove: SpecialMove.EnPassant));
                     }
@@ -209,10 +209,10 @@ namespace ExtraChess.Moves
             return moves;
         }
 
-        public static UInt64 GetPawnAttackMap(Color ownColor, UInt64 pawns, UInt64 ownPieces)
+        public static UInt64 GetPawnAttackMap(Color attackingColor, UInt64 attackingPawns)
         {
-            UInt64 capturesWest = (ownColor == Color.White ? (pawns & ~Constants.AFile) << 7 : (pawns & ~Constants.AFile) >> 7) & ~ownPieces;
-            UInt64 capturesEast = (ownColor == Color.White ? (pawns & ~Constants.AFile) << 9 : (pawns & ~Constants.AFile) >> 9) & ~ownPieces;
+            UInt64 capturesWest = (attackingColor == Color.White ? (attackingPawns & ~Constants.AFile) << 7 : (attackingPawns & ~Constants.AFile) >> 9);
+            UInt64 capturesEast = (attackingColor == Color.White ? (attackingPawns & ~Constants.HFile) << 9 : (attackingPawns & ~Constants.HFile) >> 7);
             return capturesWest | capturesEast;
         }
     }

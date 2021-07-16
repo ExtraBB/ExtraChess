@@ -88,74 +88,74 @@ namespace ExtraChess.Moves
             return moves;
         }
 
-        public static UInt64 GetBishopAttackMap(UInt64 bishops, UInt64 occupied, UInt64 ownPieces)
+        public static UInt64 GetBishopAttackMap(UInt64 bishops, UInt64 occupied)
         {
             UInt64 allAttacks = 0;
 
             foreach (int i in bishops.GetBitsSet())
             {
-                allAttacks |= Magics.GetBishopAttacks(occupied, i) & ~ownPieces;
+                allAttacks |= Magics.GetBishopAttacks(occupied, i);
             }
 
             return allAttacks;
         }
 
-        public static List<(int position, UInt64 attack)> GetSplitBishopAttackMap(UInt64 bishops, UInt64 occupied, UInt64 ownPieces)
+        public static List<(int position, UInt64 attack)> GetSplitBishopAttackMap(UInt64 bishops, UInt64 occupied)
         {
             List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
 
             foreach (int i in bishops.GetBitsSet())
             {
-                allAttacks.Add((i, Magics.GetBishopAttacks(occupied, i) & ~ownPieces));
+                allAttacks.Add((i, Magics.GetBishopAttacks(occupied, i)));
             }
 
             return allAttacks;
         }
 
-        public static UInt64 GetRookAttackMap(UInt64 rooks, UInt64 occupied, UInt64 ownPieces)
+        public static UInt64 GetRookAttackMap(UInt64 rooks, UInt64 occupied)
         {
             UInt64 allAttacks = 0;
 
             foreach (int i in rooks.GetBitsSet())
             {
-                allAttacks |= Magics.GetRookAttacks(occupied, i) & ~ownPieces;
+                allAttacks |= Magics.GetRookAttacks(occupied, i);
             }
 
             return allAttacks;
         }
 
-        public static List<(int position, UInt64 attack)> GetSplitRookAttackMap(UInt64 rooks, UInt64 occupied, UInt64 ownPieces)
+        public static List<(int position, UInt64 attack)> GetSplitRookAttackMap(UInt64 rooks, UInt64 occupied)
         {
             List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
 
             foreach (int i in rooks.GetBitsSet())
             {
-                allAttacks.Add((i, Magics.GetRookAttacks(occupied, i) & ~ownPieces));
+                allAttacks.Add((i, Magics.GetRookAttacks(occupied, i)));
             }
 
             return allAttacks;
         }
 
-        public static UInt64 GetQueenAttackMap(UInt64 queens, UInt64 occupied, UInt64 ownPieces)
+        public static UInt64 GetQueenAttackMap(UInt64 queens, UInt64 occupied)
         {
             UInt64 allAttacks = 0;
 
             foreach (int i in queens.GetBitsSet())
             {
-                allAttacks |= Magics.GetRookAttacks(occupied, i) & ~ownPieces;
-                allAttacks |= Magics.GetBishopAttacks(occupied, i) & ~ownPieces;
+                allAttacks |= Magics.GetRookAttacks(occupied, i);
+                allAttacks |= Magics.GetBishopAttacks(occupied, i);
             }
 
             return allAttacks;
         }
 
-        public static List<(int position, UInt64 attack)> GetSplitQueenAttackMap(UInt64 queens, UInt64 occupied, UInt64 ownPieces)
+        public static List<(int position, UInt64 attack)> GetSplitQueenAttackMap(UInt64 queens, UInt64 occupied)
         {
             List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
 
             foreach (int i in queens.GetBitsSet())
             {
-                allAttacks.Add((i, (Magics.GetRookAttacks(occupied, i) & ~ownPieces) | (Magics.GetBishopAttacks(occupied, i) & ~ownPieces)));
+                allAttacks.Add((i, Magics.GetRookAttacks(occupied, i) | Magics.GetBishopAttacks(occupied, i)));
             }
 
             return allAttacks;

@@ -39,7 +39,7 @@ namespace ExtraChess.Generators
                         .Concat(SlidingMoves.CalculateBQueenMoves(board))
                         .Concat(KingMoves.CalculateBKingMoves(board))
                         .Concat(KnightMoves.CalculateBKnightMoves(board))
-                        .Where(move => MoveAnalyzer.IsLegalMove(board, move, Player.Black));
+                        .Where(move => board.IsLegalMove(move));
                 }
                 else if (board.State.CurrentPlayer == Player.White)
                 {
@@ -49,7 +49,7 @@ namespace ExtraChess.Generators
                         .Concat(SlidingMoves.CalculateWQueenMoves(board))
                         .Concat(KingMoves.CalculateWKingMoves(board))
                         .Concat(KnightMoves.CalculateWKnightMoves(board))
-                        .Where(move => MoveAnalyzer.IsLegalMove(board, move, Player.White));
+                        .Where(move => board.IsLegalMove(move));
                 }
                 return null;
             }
