@@ -128,7 +128,7 @@ namespace ExtraChess.Analysis
 
             foreach (Move move in moves)
             {
-                board.MakeMove(move);
+                board.MakeMove(move, depth > 1);
                 int score = -Negamax(board, -beta, -alpha, depth - 1);
                 board.UnmakeMove();
 

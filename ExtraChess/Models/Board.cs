@@ -28,6 +28,7 @@ namespace ExtraChess.Models
     public class Board
     {
         public Piece[] Pieces = new Piece[64];
+        public Dictionary<Piece, List<int>> PositionsByPiece = new Dictionary<Piece, List<int>>();
         public UInt64[] BoardByPiece = new UInt64[13];
         public UInt64[] BoardByColor = new UInt64[2];
         public UInt64 Occupied;
@@ -40,6 +41,11 @@ namespace ExtraChess.Models
 
         public Board(string fen = StartPos)
         {
+            foreach (Piece piece in Enum.GetValues(typeof(Piece)))
+            {
+                PositionsByPiece.Add(piece, new List<int>());
+            }
+
             Magics.Initialize();
             UpdateFromFEN(fen);
             UpdateCheckInfo();
@@ -58,6 +64,8 @@ namespace ExtraChess.Models
             BoardByPiece[(int)piece] = BoardByPiece[(int)piece].ToggleBits(fromTo);
             BoardByColor[(int)color] = BoardByColor[(int)color].ToggleBits(fromTo);
             Occupied = Occupied.ToggleBits(fromTo);
+            PositionsByPiece[piece].Remove(fromSquare);
+            PositionsByPiece[piece].Add(toSquare);
             Pieces[fromSquare] = Piece.None;
             Pieces[toSquare] = piece;
         }
@@ -71,6 +79,7 @@ namespace ExtraChess.Models
             BoardByColor[(int)color] = BoardByColor[(int)color].SetBit(square);
             Occupied = Occupied.SetBit(square);
             Pieces[square] = piece;
+            PositionsByPiece[piece].Add(square);
         }
 
         private void UnsetPiece(Piece piece, int square)
@@ -82,9 +91,10 @@ namespace ExtraChess.Models
             BoardByColor[(int)color] = BoardByColor[(int)color].UnsetBit(square);
             Occupied = Occupied.UnsetBit(square);
             Pieces[square] = Piece.None;
+            PositionsByPiece[piece].Remove(square);
         }
 
-        public void MakeMove(Move move)
+        public void MakeMove(Move move, bool updateCheckInfo = true)
         {
             // Set variables to restore when unmaking move
             Piece capturedPiece = Pieces[move.To];
@@ -261,7 +271,10 @@ namespace ExtraChess.Models
             State.CurrentPlayer = (Player)(-(int)State.CurrentPlayer);
             State.FullMoves++;
 
-            UpdateCheckInfo();
+            if (updateCheckInfo)
+            {
+                UpdateCheckInfo();
+            }
         }
 
         public void UnmakeMove()
@@ -466,10 +479,10 @@ namespace ExtraChess.Models
 
             // Split attacks by piece
             UInt64 occupiedWithoutKing = Occupied & ~ownKing;
-            List<(int position, UInt64 attack)> SplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(BoardByPiece[opponentRook], occupiedWithoutKing);
-            List<(int position, UInt64 attack)> SplitKnightAttacks = KnightMoves.GetSplitKnightsAttackMap(BoardByPiece[opponentKnight]);
-            List<(int position, UInt64 attack)> SplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(BoardByPiece[opponentBishop], occupiedWithoutKing);
-            List<(int position, UInt64 attack)> SplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(BoardByPiece[opponentQueen], occupiedWithoutKing);
+            List<(int position, UInt64 attack)> SplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(PositionsByPiece[(Piece)opponentRook], occupiedWithoutKing);
+            List<(int position, UInt64 attack)> SplitKnightAttacks = KnightMoves.GetSplitKnightsAttackMap(PositionsByPiece[(Piece)opponentKnight]);
+            List<(int position, UInt64 attack)> SplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(PositionsByPiece[(Piece)opponentBishop], occupiedWithoutKing);
+            List<(int position, UInt64 attack)> SplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(PositionsByPiece[(Piece)opponentQueen], occupiedWithoutKing);
 
             // Add checkers
             State.Checkers.AddRange(SplitRookAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentRook, 1UL << item.position)));
@@ -505,7 +518,7 @@ namespace ExtraChess.Models
             State.Attacks = RookAttacks | BishopAttacks | QueenAttacks | PawnAttacks | KnightAttacks | KingAttacks;
 
             // 3. Determine blockers
-            State.Blockers = FindBlockers(ownKing, Occupied, BoardByPiece[opponentRook], BoardByPiece[opponentBishop], BoardByPiece[opponentQueen]);
+            State.Blockers = FindBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
 
             // Generate opponent blockers in case of en passent
             if(State.EnPassent != Square.None && State.PlayedMove != null)
@@ -514,19 +527,19 @@ namespace ExtraChess.Models
                 MovePiece(State.PlayedMove.To, State.PlayedMove.From);
 
                 // Store blockers when move wasn't played
-                State.PreviousBlockers = FindBlockers(ownKing, Occupied, BoardByPiece[opponentRook], BoardByPiece[opponentBishop], BoardByPiece[opponentQueen]);
+                State.PreviousBlockers = FindBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
 
                 // Redo last move
                 MovePiece(State.PlayedMove.From, State.PlayedMove.To);
             }
         }
 
-        private static UInt64 FindBlockers(UInt64 king, UInt64 occupied, UInt64 rooks, UInt64 bishops, UInt64 queens)
+        private UInt64 FindBlockers(UInt64 king, UInt64 occupied, Piece rook, Piece bishop, Piece queen)
         {
             // Generate attacks if no blockers would exist
-            List<(int position, UInt64 attack)> EmptySplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(rooks, rooks | king);
-            List<(int position, UInt64 attack)> EmptySplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(bishops, bishops | king);
-            List<(int position, UInt64 attack)> EmptySplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(queens, queens | king);
+            List<(int position, UInt64 attack)> EmptySplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(PositionsByPiece[rook], BoardByPiece[(int)rook] | king);
+            List<(int position, UInt64 attack)> EmptySplitBishopAttacks = SlidingMoves.GetSplitBishopAttackMap(PositionsByPiece[bishop], BoardByPiece[(int)bishop] | king);
+            List<(int position, UInt64 attack)> EmptySplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(PositionsByPiece[queen], BoardByPiece[(int)queen] | king);
 
             // Find single blockers of checks
             UInt64 blockers = 0;
@@ -535,7 +548,7 @@ namespace ExtraChess.Models
                 if ((item.attack & king) != 0)
                 {
                     UInt64 blocker = king.Between(1UL << item.position) & occupied;
-                    if (blocker.BitCount() == 1)
+                    if (blocker.HasSingleBit())
                     {
                         blockers |= blocker;
                     }

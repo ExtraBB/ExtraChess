@@ -19,7 +19,7 @@ namespace ExtraChess.Moves
 
             IEnumerable<Move> moves = new List<Move>(16);
 
-            foreach (int i in board.BoardByPiece[(int)Piece.BKnight].GetBitsSet())
+            foreach (int i in board.PositionsByPiece[Piece.BKnight])
             {
                 UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.Black];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
@@ -37,7 +37,7 @@ namespace ExtraChess.Moves
 
             IEnumerable<Move> moves = new List<Move>(16);
 
-            foreach (int i in board.BoardByPiece[(int)Piece.WKnight].GetBitsSet())
+            foreach (int i in board.PositionsByPiece[Piece.WKnight])
             {
                 UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.White];
                 moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
@@ -46,7 +46,7 @@ namespace ExtraChess.Moves
             return moves;
         }
 
-        public static UInt64 GetKnightsAttackMap(UInt64 knights, UInt64 ownPieces)
+        public static UInt64 GetKnightsAttackMap(List<int> knights, UInt64 ownPieces)
         {
             if (KnightMovesLookupTable == null)
             {
@@ -54,14 +54,14 @@ namespace ExtraChess.Moves
             }
 
             UInt64 allAttacks = 0;
-            foreach (int i in knights.GetBitsSet())
+            foreach (int i in knights)
             {
                 allAttacks |= KnightMovesLookupTable[i] & ~ownPieces;
             }
             return allAttacks;
         }
 
-        public static List<(int, UInt64)> GetSplitKnightsAttackMap(UInt64 knights)
+        public static List<(int, UInt64)> GetSplitKnightsAttackMap(List<int> knights)
         {
             if (KnightMovesLookupTable == null)
             {
@@ -69,7 +69,7 @@ namespace ExtraChess.Moves
             }
 
             List<(int, UInt64)> allAttacks = new List<(int, UInt64)>();
-            foreach (int i in knights.GetBitsSet())
+            foreach (int i in knights)
             {
                 allAttacks.Add((i, KnightMovesLookupTable[i]));
             }

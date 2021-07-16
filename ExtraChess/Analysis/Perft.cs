@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace ExtraChess.Analysis
 {
-    public static class PerftAnalyzer
+    public static class Perft
     {
-        public static ulong Perft(Board board, int depth)
+        public static ulong PerftSingleThreaded(Board board, int depth)
         {
             var moves = MoveGenerator.GenerateMoves(board).ToArray();
 
@@ -25,7 +25,7 @@ namespace ExtraChess.Analysis
             for (int i = 0; i < moves.Length; i++)
             {
                 board.MakeMove(moves[i]);
-                total += Perft(board, depth - 1);
+                total += PerftSingleThreaded(board, depth - 1);
                 board.UnmakeMove();
             }
 
@@ -47,7 +47,7 @@ namespace ExtraChess.Analysis
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);
-                totals[i] = Perft(clone, depth - 1);
+                totals[i] = PerftSingleThreaded(clone, depth - 1);
                 clone.UnmakeMove();
             });
 
@@ -63,7 +63,7 @@ namespace ExtraChess.Analysis
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);
-                result[i] = (moves[i], Perft(clone, depth - 1));
+                result[i] = (moves[i], PerftSingleThreaded(clone, depth - 1));
                 clone.UnmakeMove();
             });
 

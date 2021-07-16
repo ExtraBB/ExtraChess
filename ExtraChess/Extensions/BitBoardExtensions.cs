@@ -35,9 +35,9 @@ namespace ExtraChess
         public static IEnumerable<int> GetBitsSet(this UInt64 value)
         {
             int counter = 0;
-            while(value > 0)
+            while(value != 0)
             {
-                if((value & 1UL) == 1UL)
+                if ((value & 1UL) == 1UL)
                 {
                     yield return counter;
                 }
@@ -79,6 +79,11 @@ namespace ExtraChess
             }
             
             return count;
+        }
+
+        public static bool HasSingleBit(this UInt64 value)
+        {
+            return (value & (value - 1)) == 0;
         }
 
         public static int GetLS1BIndex(this UInt64 value)

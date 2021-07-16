@@ -105,7 +105,7 @@ namespace ExtraChess.UCI
                     {
                         Stopwatch watch = new Stopwatch();
                         watch.Start();
-                        UCISender.SendPerft(PerftAnalyzer.PerftDivide(EngineState.Board, int.Parse(args[1])), watch.ElapsedMilliseconds);
+                        UCISender.SendPerft(Perft.PerftDivide(EngineState.Board, int.Parse(args[1])), watch.ElapsedMilliseconds);
                         watch.Stop();
                         return;
                     }
