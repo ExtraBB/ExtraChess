@@ -94,7 +94,7 @@ namespace ExtraChess
             }
         }
 
-        // Assumes only 1 bit is set
+        // Assumes only 1 bit is set and line exists
         public static bool IsOnLine(this UInt64 square, UInt64 lineStart, UInt64 lineEnd)
         {
             int start = lineStart.GetLS1BIndex();

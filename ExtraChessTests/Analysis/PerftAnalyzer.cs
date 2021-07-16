@@ -58,9 +58,9 @@ namespace ExtraChessTests.Analysis
             Assert.AreEqual(2_812, PerftAnalyzer.Perft(board, 3));
             Assert.AreEqual(43_238, PerftAnalyzer.Perft(board, 4));
             Assert.AreEqual(674_624, PerftAnalyzer.Perft(board, 5));
+            Assert.AreEqual(11_030_083, PerftAnalyzer.Perft(board, 6));
 
             // Uncomment when reaching better performance
-            //Assert.AreEqual(11_030_083, PerftAnalyzer.Perft(board, 6));
             //Assert.AreEqual(178_633_661, PerftAnalyzer.Perft(board, 7));
             //Assert.AreEqual(3_009_794_393, PerftAnalyzer.Perft(board, 8));
         }
@@ -74,9 +74,9 @@ namespace ExtraChessTests.Analysis
             Assert.AreEqual(264, PerftAnalyzer.Perft(board, 2));
             Assert.AreEqual(9_467, PerftAnalyzer.Perft(board, 3));
             Assert.AreEqual(422_333, PerftAnalyzer.Perft(board, 4));
+            Assert.AreEqual(15_833_292, PerftAnalyzer.Perft(board, 5));
 
             // Uncomment when reaching better performance
-            //Assert.AreEqual(15_833_292, PerftAnalyzer.Perft(board, 5));
             //Assert.AreEqual(706_045_033, PerftAnalyzer.Perft(board, 6));
         }
 

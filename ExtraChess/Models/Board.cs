@@ -378,19 +378,12 @@ namespace ExtraChess.Models
             return copy;
         }
 
-        public Board PreviewMove(Move move)
+        public bool SquareIsInCheck(Square square)
         {
-            Board copy = Clone();
-            copy.MakeMove(move);
-            return copy;
+            return SquareIsInCheck(0UL.SetBit((int)square));
         }
 
-        public bool SquareIsInCheck(Square square, Player playerPossibleInCheck)
-        {
-            return SquareIsInCheck(0UL.SetBit((int)square), playerPossibleInCheck);
-        }
-
-        public bool SquareIsInCheck(UInt64 square, Player playerPossibleInCheck)
+        public bool SquareIsInCheck(UInt64 square)
         {
             return (square & State.Attacks) != 0;
         }
@@ -398,14 +391,7 @@ namespace ExtraChess.Models
         public bool IsLegalMove(Move move)
         {
             UInt64 to = 1UL << move.To;
-            UInt64 potentialCapture = move.SpecialMove == SpecialMove.EnPassant ? 1UL << (int)State.EnPassent: to;
             UInt64 from = 1UL << move.From;
-
-            UInt64 kingUnderThreat = BoardByPiece[State.CurrentPlayer == Player.White ? (int)Piece.WKing : (int)Piece.BKing];
-
-            bool isPinned = (State.Blockers & from) != 0 || (move.SpecialMove == SpecialMove.EnPassant && (State.PreviousBlockers & from) != 0);
-            bool kingInCheck = State.Checkers.Count > 0;
-
 
             // 1. Check king moves
             if (move.Piece.ToType() == PieceType.King)
@@ -413,10 +399,13 @@ namespace ExtraChess.Models
                 return (State.Attacks & to) == 0 && (State.Blockers & to) == 0;
             }
 
-            if(move.SpecialMove == SpecialMove.EnPassant)
-            {
-                int x = 1;
-            }
+            UInt64 potentialCapture = move.SpecialMove == SpecialMove.EnPassant
+                ? (State.CurrentPlayer == Player.White ? 1UL << ((int)State.EnPassent - 8) : 1UL << ((int)State.EnPassent + 8))
+                : to;
+
+            UInt64 kingUnderThreat = BoardByPiece[State.CurrentPlayer == Player.White ? (int)Piece.WKing : (int)Piece.BKing];
+            bool isPinned = (State.Blockers & from) != 0 || (move.SpecialMove == SpecialMove.EnPassant && (State.PreviousBlockers & from) != 0);
+            bool kingInCheck = State.Checkers.Count > 0;
 
             // 2. King is in check, capture or block
             if (kingInCheck)
@@ -430,7 +419,7 @@ namespace ExtraChess.Models
                 var checker = State.Checkers[0];
 
                 // Can capture checker if not pinned or moving on same line as pin
-                if (potentialCapture == checker.position && (!isPinned || kingUnderThreat.IsOnLine(from, to)))
+                if (potentialCapture == checker.position && (!isPinned || (move.Piece.ToType() != PieceType.Knight && kingUnderThreat.IsOnLine(from, to))))
                 {
                     // Capture the checker
                     return true;
@@ -443,7 +432,7 @@ namespace ExtraChess.Models
                 else
                 {
                     // Block the checker
-                    return (to & kingUnderThreat.Between(checker.position)) != 0 && (!isPinned || kingUnderThreat.IsOnLine(from, to));
+                    return (to & kingUnderThreat.Between(checker.position)) != 0 && (!isPinned || (move.Piece.ToType() != PieceType.Knight && kingUnderThreat.IsOnLine(from, to)));
                 }
             }
 
@@ -519,7 +508,7 @@ namespace ExtraChess.Models
             State.Blockers = FindBlockers(ownKing, Occupied, BoardByPiece[opponentRook], BoardByPiece[opponentBishop], BoardByPiece[opponentQueen]);
 
             // Generate opponent blockers in case of en passent
-            if(State.EnPassent != Square.None)
+            if(State.EnPassent != Square.None && State.PlayedMove != null)
             {
                 // Undo last move
                 MovePiece(State.PlayedMove.To, State.PlayedMove.From);

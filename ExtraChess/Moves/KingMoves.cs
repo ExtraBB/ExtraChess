@@ -75,7 +75,7 @@ namespace ExtraChess.Moves
                 if (board.State.WCanCastleQueenSide)
                 {
                     bool emptyLeft = (0UL.SetBit((int)Square.B1).SetBit((int)Square.C1).SetBit((int)Square.D1) & board.Occupied) == 0;
-                    if (emptyLeft && !board.SquareIsInCheck(Square.C1, Player.White) && !board.SquareIsInCheck(Square.D1, Player.White) && !board.SquareIsInCheck(Square.E1, Player.White))
+                    if (emptyLeft && !board.SquareIsInCheck(Square.C1) && !board.SquareIsInCheck(Square.D1) && !board.SquareIsInCheck(Square.E1))
                     {
                         moves.Add(new Move(Piece.WKing, Square.E1, Square.C1, specialMove: SpecialMove.Castling));
                     }
@@ -84,7 +84,7 @@ namespace ExtraChess.Moves
                 if (board.State.WCanCastleKingSide)
                 {
                     bool emptyRight = (0UL.SetBit((int)Square.F1).SetBit((int)Square.G1) & board.Occupied) == 0;
-                    if (emptyRight && !board.SquareIsInCheck(Square.E1, Player.White) && !board.SquareIsInCheck(Square.F1, Player.White) && !board.SquareIsInCheck(Square.G1, Player.White))
+                    if (emptyRight && !board.SquareIsInCheck(Square.E1) && !board.SquareIsInCheck(Square.F1) && !board.SquareIsInCheck(Square.G1))
                     {
                         moves.Add(new Move(Piece.WKing, Square.E1, Square.G1, specialMove: SpecialMove.Castling));
                     }
@@ -95,7 +95,7 @@ namespace ExtraChess.Moves
                 if (board.State.BCanCastleQueenSide)
                 {
                     bool emptyLeft = (0UL.SetBit((int)Square.B8).SetBit((int)Square.C8).SetBit((int)Square.D8) & board.Occupied) == 0;
-                    if (emptyLeft && !board.SquareIsInCheck(Square.C8, Player.Black) && !board.SquareIsInCheck(Square.D8, Player.Black) && !board.SquareIsInCheck(Square.E8, Player.Black))
+                    if (emptyLeft && !board.SquareIsInCheck(Square.C8) && !board.SquareIsInCheck(Square.D8) && !board.SquareIsInCheck(Square.E8))
                     {
                         moves.Add(new Move(Piece.BKing, Square.E8, Square.C8, specialMove: SpecialMove.Castling));
                     }
@@ -104,7 +104,7 @@ namespace ExtraChess.Moves
                 if (board.State.BCanCastleKingSide)
                 {
                     bool emptyRight = (0UL.SetBit((int)Square.F8).SetBit((int)Square.G8) & board.Occupied) == 0;
-                    if (emptyRight && !board.SquareIsInCheck(Square.E8, Player.Black) && !board.SquareIsInCheck(Square.F8, Player.Black) && !board.SquareIsInCheck(Square.G8, Player.Black))
+                    if (emptyRight && !board.SquareIsInCheck(Square.E8) && !board.SquareIsInCheck(Square.F8) && !board.SquareIsInCheck(Square.G8))
                     {
                         moves.Add(new Move(Piece.BKing, Square.E8, Square.G8, specialMove: SpecialMove.Castling));
                     }
