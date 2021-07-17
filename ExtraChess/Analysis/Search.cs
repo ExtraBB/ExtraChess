@@ -15,8 +15,9 @@ namespace ExtraChess.Analysis
         public static bool IsSearching { get; private set; }
         public delegate void BestMoveFoundEventHandler(Move move);
         public static event BestMoveFoundEventHandler BestMoveFound;
+        public static long Nodes { get; private set; } = 0;
 
-        public static async void Start(Board board, long calculateForMillis = long.MaxValue)
+        public static async Task Start(Board board, long calculateForMillis = long.MaxValue)
         {
             if (IsSearching)
             {
@@ -38,13 +39,15 @@ namespace ExtraChess.Analysis
             }
         }
 
+
         public static void Stop()
         {
             IsSearching = false;
         }
 
-        private static Move NegamaxRoot(Board board, long calculateForMillis = long.MaxValue)
+        public static Move NegamaxRoot(Board board, long calculateForMillis = long.MaxValue)
         {
+            Nodes = 0;
             Stopwatch watch = new Stopwatch();
             watch.Start();
 
@@ -90,7 +93,7 @@ namespace ExtraChess.Analysis
                     }
                 }
 
-                UCISender.SendInfo(depth: depth, pv: bestMove, score: bestScore, time: watch.ElapsedMilliseconds);
+                UCISender.SendInfo(depth: depth, pv: bestMove, score: bestScore, time: watch.ElapsedMilliseconds, nodes: Nodes);
 
                 if (!IsSearching || watch.ElapsedMilliseconds > calculateForMillis)
                 {
@@ -106,6 +109,7 @@ namespace ExtraChess.Analysis
 
         private static int Negamax(Board board, int alpha, int beta, int depth)
         {
+            Nodes++;
             if (depth == 0)
             {
                 return Evaluate.EvaluateBoard(board);

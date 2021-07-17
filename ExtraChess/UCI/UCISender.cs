@@ -48,7 +48,7 @@ namespace ExtraChess.UCI
             Console.Write(File.ReadAllText("Resources/uci_help_text_en.txt"));
         }
 
-        public static void SendInfo(int depth = -1, long time = -1, Move pv = null, int score = -1)
+        public static void SendInfo(int depth = -1, long time = -1, Move pv = null, int score = -1, long nodes = -1)
         {
             string info = "info ";
             if (depth != -1)
@@ -69,6 +69,11 @@ namespace ExtraChess.UCI
             if (time != -1)
             {
                 info += $"time {time} ";
+            }
+
+            if (nodes != -1)
+            {
+                info += $"nodes {nodes} ";
             }
 
             Console.WriteLine(info);

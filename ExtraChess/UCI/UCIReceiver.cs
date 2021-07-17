@@ -84,6 +84,11 @@ namespace ExtraChess.UCI
                         Environment.Exit(0);
                         break;
                     }
+                case "performance":
+                    {
+                        ProcessPerformance(options);
+                        break;
+                    }
                 default:
                     {
                         throw new UnknownCommandException(command);
@@ -117,6 +122,28 @@ namespace ExtraChess.UCI
                 case "infinite":
                     {
                         Search.Start(EngineState.Board);
+                        return;
+                    }
+            }
+        }
+
+        private static async void ProcessPerformance(string[] args)
+        {
+            if (args.Length == 0)
+            {
+                return;
+            }
+
+            switch (args[0])
+            {
+                case "search":
+                    {
+                        long millis = 10_000;
+                        Stopwatch watch = new Stopwatch();
+                        watch.Start();
+                        await Search.Start(EngineState.Board, millis);
+                        watch.Stop();
+                        Console.WriteLine($"Search performance: Found {Search.Nodes} in {millis} ms");
                         return;
                     }
             }
