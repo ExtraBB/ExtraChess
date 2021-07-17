@@ -92,6 +92,17 @@ namespace ExtraChessUI.Views
             });
         }
 
+        public void HighlightSquare(int square)
+        {
+            if(SelectedItem != null)
+            {
+                SelectedItem.Selected = false;
+                SelectedItem = null;
+            }
+            BoardItems[63 - square].Selected = true;
+            SelectedItem = BoardItems[63 - square];
+        }
+
         private void Square_MouseUp(object sender, MouseButtonEventArgs e)
         {
             // Update selected item

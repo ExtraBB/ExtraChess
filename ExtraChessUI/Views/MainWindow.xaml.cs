@@ -167,6 +167,7 @@ namespace ExtraChessUI.Views
         private void CurrentEngine_MoveReceived(Move move)
         {
             GameState.MakeMove(move);
+            BoardControl.HighlightSquare(move.To);
             if(GameState.Winner != Player.None)
             {
                 MessageBox.Show($"{GameState.Winner} has won!");
