@@ -36,6 +36,10 @@ namespace ExtraChessUI.Utils
 
         private void Process_OutputDataReceived(object sender, DataReceivedEventArgs e)
         {
+            if(e.Data == null)
+            {
+                return;
+            }
             OutputReceived?.Invoke(e.Data);
 
             string[] split = e.Data.Split();
