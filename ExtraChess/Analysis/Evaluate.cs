@@ -13,22 +13,16 @@ namespace ExtraChess.Analysis
         {
             int score = 0;
 
-            foreach(Piece p in board.Pieces)
-            {
-                switch(p)
-                {
-                    case Piece.WPawn: score += 100; break;
-                    case Piece.WBishop: score += 300; break;
-                    case Piece.WKnight: score += 300; break;
-                    case Piece.WRook: score += 500; break;
-                    case Piece.WQueen: score += 900; break;
-                    case Piece.BPawn: score -= 100; break;
-                    case Piece.BBishop: score -= 300; break;
-                    case Piece.BKnight: score -= 300; break;
-                    case Piece.BRook: score -= 500; break;
-                    case Piece.BQueen: score -= 900; break;
-                }
-            }
+            score += board.PositionsByPiece[Piece.WPawn].Count * 100;
+            score += board.PositionsByPiece[Piece.WBishop].Count * 300;
+            score += board.PositionsByPiece[Piece.WKnight].Count * 300;
+            score += board.PositionsByPiece[Piece.WRook].Count * 500;
+            score += board.PositionsByPiece[Piece.WQueen].Count * 900;
+            score -= board.PositionsByPiece[Piece.BPawn].Count * 100;
+            score -= board.PositionsByPiece[Piece.BBishop].Count * 300;
+            score -= board.PositionsByPiece[Piece.BKnight].Count * 300;
+            score -= board.PositionsByPiece[Piece.BRook].Count * 500;
+            score -= board.PositionsByPiece[Piece.BQueen].Count * 900;
 
             return score * (int)board.State.CurrentPlayer;
         }
