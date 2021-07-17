@@ -374,16 +374,7 @@ namespace ExtraChess.Models
 
         public Board Clone()
         {
-            Board copy = this.MemberwiseClone() as Board;
-
-            copy.Pieces = new Piece[64];
-            Array.Copy(Pieces, copy.Pieces, 64);
-
-            copy.BoardByPiece = new UInt64[13];
-            Array.Copy(BoardByPiece, copy.BoardByPiece, 13);
-
-            copy.BoardByColor = new UInt64[2];
-            Array.Copy(BoardByColor, copy.BoardByColor, 2);
+            Board copy = new Board(GenerateFEN());
 
             copy.PreviousStates = new Stack<BoardState>(PreviousStates);
 

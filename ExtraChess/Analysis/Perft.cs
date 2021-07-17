@@ -8,7 +8,7 @@ namespace ExtraChess.Analysis
 {
     public static class Perft
     {
-        public static ulong PerftSingleThreaded(Board board, int depth)
+        public static ulong PerftSync(Board board, int depth)
         {
             List<Move> moves = MoveGenerator.GenerateMoves(board);
 
@@ -25,7 +25,7 @@ namespace ExtraChess.Analysis
             for (int i = 0; i < moves.Count; i++)
             {
                 board.MakeMove(moves[i]);
-                total += PerftSingleThreaded(board, depth - 1);
+                total += PerftSync(board, depth - 1);
                 board.UnmakeMove();
             }
 
@@ -34,20 +34,20 @@ namespace ExtraChess.Analysis
 
         public static ulong PerftConcurrent(Board board, int depth)
         {
-            List<Move> moves = MoveGenerator.GenerateMoves(board);
+            Move[] moves = MoveGenerator.GenerateMoves(board).ToArray();
 
             if (depth == 1)
             {
-                return (ulong)moves.Count;
+                return (ulong)moves.Length;
             }
 
-            ulong[] totals = new ulong[moves.Count];
+            ulong[] totals = new ulong[moves.Length];
 
-            Parallel.For(0, moves.Count, i =>
+            Parallel.For(0, moves.Length, i =>
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);
-                totals[i] = PerftSingleThreaded(clone, depth - 1);
+                totals[i] = PerftSync(clone, depth - 1);
                 clone.UnmakeMove();
             });
 
@@ -56,14 +56,14 @@ namespace ExtraChess.Analysis
 
         public static List<(Move, ulong)> PerftDivide(Board board, int depth)
         {
-            List<Move> moves = MoveGenerator.GenerateMoves(board);
-            (Move, ulong)[] result = new (Move, ulong)[moves.Count];
+            Move[] moves = MoveGenerator.GenerateMoves(board).ToArray();
+            (Move, ulong)[] result = new (Move, ulong)[moves.Length];
 
-            Parallel.For(0, moves.Count, i =>
+            Parallel.For(0, moves.Length, i =>
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);
-                result[i] = (moves[i], PerftSingleThreaded(clone, depth - 1));
+                result[i] = (moves[i], PerftSync(clone, depth - 1));
                 clone.UnmakeMove();
             });
 
