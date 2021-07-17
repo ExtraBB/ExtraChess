@@ -10,11 +10,11 @@ namespace ExtraChess.Analysis
     {
         public static ulong PerftSingleThreaded(Board board, int depth)
         {
-            var moves = MoveGenerator.GenerateMoves(board).ToArray();
+            List<Move> moves = MoveGenerator.GenerateMoves(board);
 
             if (depth == 1)
             {
-                return (ulong)moves.Length;
+                return (ulong)moves.Count;
             }
             else if(depth == 0)
             {
@@ -22,7 +22,7 @@ namespace ExtraChess.Analysis
             }
 
             ulong total = 0;
-            for (int i = 0; i < moves.Length; i++)
+            for (int i = 0; i < moves.Count; i++)
             {
                 board.MakeMove(moves[i]);
                 total += PerftSingleThreaded(board, depth - 1);
@@ -34,16 +34,16 @@ namespace ExtraChess.Analysis
 
         public static ulong PerftConcurrent(Board board, int depth)
         {
-            var moves = MoveGenerator.GenerateMoves(board).ToArray();
+            List<Move> moves = MoveGenerator.GenerateMoves(board);
 
             if (depth == 1)
             {
-                return (ulong)moves.Length;
+                return (ulong)moves.Count;
             }
 
-            ulong[] totals = new ulong[moves.Length];
+            ulong[] totals = new ulong[moves.Count];
 
-            Parallel.For(0, moves.Length, i =>
+            Parallel.For(0, moves.Count, i =>
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);
@@ -56,10 +56,10 @@ namespace ExtraChess.Analysis
 
         public static List<(Move, ulong)> PerftDivide(Board board, int depth)
         {
-            Move[] moves = MoveGenerator.GenerateMoves(board).ToArray();
-            (Move, ulong)[] result = new (Move, ulong)[moves.Length];
+            List<Move> moves = MoveGenerator.GenerateMoves(board);
+            (Move, ulong)[] result = new (Move, ulong)[moves.Count];
 
-            Parallel.For(0, moves.Length, i =>
+            Parallel.For(0, moves.Count, i =>
             {
                 Board clone = board.Clone();
                 clone.MakeMove(moves[i]);

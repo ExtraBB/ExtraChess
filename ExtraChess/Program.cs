@@ -34,7 +34,7 @@ namespace ExtraChess
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Something went wrong: {ex.StackTrace}");
+                    Console.WriteLine($"Something went wrong: {ex.Message} {ex.StackTrace}");
                 }
             }
         }

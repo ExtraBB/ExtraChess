@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using ExtraChess.Moves;
@@ -485,10 +484,10 @@ namespace ExtraChess.Models
             List<(int position, UInt64 attack)> SplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(PositionsByPiece[(Piece)opponentQueen], occupiedWithoutKing);
 
             // Add checkers
-            State.Checkers.AddRange(SplitRookAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentRook, 1UL << item.position)));
-            State.Checkers.AddRange(SplitKnightAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentKnight, 1UL << item.position)));
-            State.Checkers.AddRange(SplitBishopAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentBishop, 1UL << item.position)));
-            State.Checkers.AddRange(SplitQueenAttacks.Where(item => (item.attack & ownKing) != 0).Select(item => ((Piece)opponentQueen, 1UL << item.position)));
+            AddCheckers(SplitRookAttacks, (Piece)opponentRook, ownKing);
+            AddCheckers(SplitKnightAttacks, (Piece)opponentKnight, ownKing);
+            AddCheckers(SplitBishopAttacks, (Piece)opponentBishop, ownKing);
+            AddCheckers(SplitQueenAttacks, (Piece)opponentQueen, ownKing);
 
             // Pawn checkers
             UInt64 PawnAttacks = PawnMoves.GetPawnAttackMap((Color)opponentColor, BoardByPiece[opponentPawn]);
@@ -510,10 +509,10 @@ namespace ExtraChess.Models
             }
 
             // 2. Determine attacks
-            UInt64 RookAttacks = SplitRookAttacks.Any() ? SplitRookAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
-            UInt64 BishopAttacks = SplitBishopAttacks.Any() ? SplitBishopAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
-            UInt64 QueenAttacks = SplitQueenAttacks.Any() ? SplitQueenAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
-            UInt64 KnightAttacks = SplitKnightAttacks.Any() ? SplitKnightAttacks.Select(i => i.attack).Aggregate((i, i2) => i | i2) : 0;
+            UInt64 RookAttacks = CombineAttacks(SplitRookAttacks);
+            UInt64 BishopAttacks = CombineAttacks(SplitBishopAttacks);
+            UInt64 QueenAttacks = CombineAttacks(SplitQueenAttacks);
+            UInt64 KnightAttacks = CombineAttacks(SplitKnightAttacks);
             UInt64 KingAttacks = KingMoves.GetKingAttackMap(BoardByPiece[opponentKing], BoardByColor[opponentColor]);
             State.Attacks = RookAttacks | BishopAttacks | QueenAttacks | PawnAttacks | KnightAttacks | KingAttacks;
 
@@ -560,6 +559,27 @@ namespace ExtraChess.Models
                 }
             }
             return blockers;
+        }
+
+        private void AddCheckers(List<(int position, UInt64 attack)> attacks, Piece piece, UInt64 king)
+        {
+            foreach(var item in attacks)
+            {
+                if((item.attack & king) != 0)
+                {
+                    State.Checkers.Add((piece, 1UL << item.position));
+                }
+            }
+        }
+
+        private UInt64 CombineAttacks(List<(int position, UInt64 attack)> attacks)
+        {
+            UInt64 result = 0;
+            foreach (var item in attacks)
+            {
+                result |= item.attack;
+            }
+            return result;
         }
 
         private bool UpdateFromFEN(string fen)

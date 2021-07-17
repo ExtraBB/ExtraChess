@@ -1,26 +1,29 @@
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExtraChess.Moves
 {
     public static class PawnMoves
     {
-        public static IEnumerable<Move> CalculateWPawnMoves(Board board)
+        public static List<Move> CalculateWPawnMoves(Board board)
         {
-            return CalculateWPawnPushes(board).Concat(CalculateWPawnCaptures(board));
+            List<Move> result = new List<Move>(32);
+            CalculateWPawnPushes(result, board);
+            CalculateWPawnCaptures(result, board);
+            return result;
         }
 
-        public static IEnumerable<Move> CalculateBPawnMoves(Board board)
+        public static List<Move> CalculateBPawnMoves(Board board)
         {
-            return CalculateBPawnPushes(board).Concat(CalculateBPawnCaptures(board));
+            List<Move> result = new List<Move>(64);
+            CalculateBPawnPushes(result, board);
+            CalculateBPawnCaptures(result, board);
+            return result;
         }
 
-        public static IEnumerable<Move> CalculateWPawnPushes(Board board)
+        public static void CalculateWPawnPushes(List<Move> moves, Board board)
         {
-            List<Move> moves = new List<Move>(32);
-
             UInt64 singlePush = board.BoardByPiece[(int)Piece.WPawn].NorthOne() & ~board.Occupied;
             UInt64 doublePush = singlePush.NorthOne() & ~board.Occupied & Constants.Rank4;
 
@@ -44,14 +47,10 @@ namespace ExtraChess.Moves
                 moves.Add(new Move(Piece.WPawn, i - 8, i, PromotionType.Rook, SpecialMove.Promotion));
                 moves.Add(new Move(Piece.WPawn, i - 8, i, PromotionType.Bishop, SpecialMove.Promotion));
             }
-
-            return moves;
         }
 
-        public static IEnumerable<Move> CalculateBPawnPushes(Board board)
+        public static void CalculateBPawnPushes(List<Move> moves, Board board)
         {
-            List<Move> moves = new List<Move>(32);
-
             UInt64 singlePush = board.BoardByPiece[(int)Piece.BPawn].SouthOne() & ~board.Occupied;
             UInt64 doublePush = singlePush.SouthOne() & ~board.Occupied & Constants.Rank5;
 
@@ -75,14 +74,10 @@ namespace ExtraChess.Moves
                 moves.Add(new Move(Piece.BPawn, i + 8, i, PromotionType.Rook, SpecialMove.Promotion));
                 moves.Add(new Move(Piece.BPawn, i + 8, i, PromotionType.Bishop, SpecialMove.Promotion));
             }
-
-            return moves;
         }
 
-        public static IEnumerable<Move> CalculateWPawnCaptures(Board board)
+        public static void CalculateWPawnCaptures(List<Move> moves, Board board)
         {
-            List<Move> moves = new List<Move>(16);
-
             UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.AFile) << 7) & board.BoardByColor[(int)Color.Black];
             UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.HFile) << 9) & board.BoardByColor[(int)Color.Black];
 
@@ -140,14 +135,10 @@ namespace ExtraChess.Moves
                     }
                 }
             }
-
-            return moves;
         }
 
-        public static IEnumerable<Move> CalculateBPawnCaptures(Board board)
+        public static void CalculateBPawnCaptures(List<Move> moves, Board board)
         {
-            List<Move> moves = new List<Move>(16);
-
             UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.AFile) >> 9) & board.BoardByColor[(int)Color.White];
             UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.HFile) >> 7) & board.BoardByColor[(int)Color.White];
 
@@ -205,8 +196,6 @@ namespace ExtraChess.Moves
                     }
                 }
             }
-
-            return moves;
         }
 
         public static UInt64 GetPawnAttackMap(Color attackingColor, UInt64 attackingPawns)

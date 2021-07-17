@@ -2,7 +2,6 @@ using ExtraChess.Generators;
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExtraChess.Moves
 {
@@ -10,7 +9,7 @@ namespace ExtraChess.Moves
     {
         private static UInt64[] KingMovesLookupTable;
 
-        public static IEnumerable<Move> CalculateWKingMoves(Board board)
+        public static List<Move> CalculateWKingMoves(Board board)
         {
             if(KingMovesLookupTable == null)
             {
@@ -18,10 +17,12 @@ namespace ExtraChess.Moves
             }
             
             int position = board.BoardByPiece[(int)Piece.WKing].GetLS1BIndex();
-            return MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.White], position, Piece.WKing).Concat(GetCastlingMoves(board, Piece.WKing));
+            List<Move> result = MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.White], position, Piece.WKing);
+            GetCastlingMoves(result, board, Piece.WKing);
+            return result;
         }
 
-        public static IEnumerable<Move> CalculateBKingMoves(Board board)
+        public static List<Move> CalculateBKingMoves(Board board)
         {
             if(KingMovesLookupTable == null)
             {
@@ -29,7 +30,9 @@ namespace ExtraChess.Moves
             }
             
             int position = board.BoardByPiece[(int)Piece.BKing].GetLS1BIndex();
-            return MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.Black], position, Piece.BKing).Concat(GetCastlingMoves(board, Piece.BKing));
+            List<Move> result = MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.Black], position, Piece.BKing);
+            GetCastlingMoves(result, board, Piece.BKing);
+            return result;
         }
 
         public static UInt64 GetKingAttackMap(UInt64 king, UInt64 ownPieces)
@@ -66,10 +69,8 @@ namespace ExtraChess.Moves
             }
         }
 
-        private static IEnumerable<Move> GetCastlingMoves(Board board, Piece piece)
+        private static void GetCastlingMoves(List<Move> moves, Board board, Piece piece)
         {
-            List<Move> moves = new List<Move>(4);
-
             if(piece == Piece.WKing)
             {
                 if (board.State.WCanCastleQueenSide)
@@ -110,8 +111,6 @@ namespace ExtraChess.Moves
                     }
                 }
             } 
-
-            return moves;
         }
     }
 }

@@ -2,7 +2,6 @@ using ExtraChess.Generators;
 using ExtraChess.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ExtraChess.Moves
 {
@@ -10,37 +9,37 @@ namespace ExtraChess.Moves
     {
         private static UInt64[] KnightMovesLookupTable;
 
-        public static IEnumerable<Move> CalculateBKnightMoves(Board board)
+        public static List<Move> CalculateBKnightMoves(Board board)
         {
             if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
 
-            IEnumerable<Move> moves = new List<Move>(16);
+            List<Move> moves = new List<Move>(16);
 
             foreach (int i in board.PositionsByPiece[Piece.BKnight])
             {
                 UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.Black];
-                moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
             }
 
             return moves;
         }
 
-        public static IEnumerable<Move> CalculateWKnightMoves(Board board)
+        public static List<Move> CalculateWKnightMoves(Board board)
         {
             if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
 
-            IEnumerable<Move> moves = new List<Move>(16);
+            List<Move> moves = new List<Move>(16);
 
             foreach (int i in board.PositionsByPiece[Piece.WKnight])
             {
                 UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.White];
-                moves = moves.Concat(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
             }
 
             return moves;
