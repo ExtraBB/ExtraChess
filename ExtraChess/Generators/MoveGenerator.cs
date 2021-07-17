@@ -12,12 +12,9 @@ namespace ExtraChess.Generators
         public static List<Move> GenerateMovesFromBitboard(UInt64 bitboard, int position, Piece piece)
         {
             List<Move> moves = new List<Move>(32);
-            for (int i = 0; i < 64; i++)
+            foreach(int i in bitboard.GetBitsSet())
             {
-                if (bitboard.NthBitSet(i))
-                {
-                    moves.Add(new Move(piece, position, i));
-                }
+                moves.Add(new Move(piece, position, i));
             }
             return moves;
         }
