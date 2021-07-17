@@ -518,7 +518,7 @@ namespace ExtraChess.Models
             State.Attacks = RookAttacks | BishopAttacks | QueenAttacks | PawnAttacks | KnightAttacks | KingAttacks;
 
             // 3. Determine blockers
-            State.Blockers = FindBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
+            State.Blockers = FindSliderBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
 
             // Generate opponent blockers in case of en passent
             if(State.EnPassent != Square.None && State.PlayedMove != null)
@@ -527,14 +527,14 @@ namespace ExtraChess.Models
                 MovePiece(State.PlayedMove.To, State.PlayedMove.From);
 
                 // Store blockers when move wasn't played
-                State.PreviousBlockers = FindBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
+                State.PreviousBlockers = FindSliderBlockers(ownKing, Occupied, (Piece)opponentRook, (Piece)opponentBishop, (Piece)opponentQueen);
 
                 // Redo last move
                 MovePiece(State.PlayedMove.From, State.PlayedMove.To);
             }
         }
 
-        private UInt64 FindBlockers(UInt64 king, UInt64 occupied, Piece rook, Piece bishop, Piece queen)
+        private UInt64 FindSliderBlockers(UInt64 king, UInt64 occupied, Piece rook, Piece bishop, Piece queen)
         {
             // Generate attacks if no blockers would exist
             List<(int position, UInt64 attack)> EmptySplitRookAttacks = SlidingMoves.GetSplitRookAttackMap(PositionsByPiece[rook], BoardByPiece[(int)rook] | king);
@@ -542,8 +542,13 @@ namespace ExtraChess.Models
             List<(int position, UInt64 attack)> EmptySplitQueenAttacks = SlidingMoves.GetSplitQueenAttackMap(PositionsByPiece[queen], BoardByPiece[(int)queen] | king);
 
             // Find single blockers of checks
+            return FindBlockers(king, occupied, EmptySplitRookAttacks) | FindBlockers(king, occupied, EmptySplitBishopAttacks) | FindBlockers(king, occupied, EmptySplitQueenAttacks);
+        }
+
+        private UInt64 FindBlockers(UInt64 king, UInt64 occupied, List<(int position, UInt64 attack)> attacks)
+        {
             UInt64 blockers = 0;
-            foreach (var item in EmptySplitBishopAttacks.Concat(EmptySplitRookAttacks).Concat(EmptySplitQueenAttacks))
+            foreach (var item in attacks)
             {
                 if ((item.attack & king) != 0)
                 {

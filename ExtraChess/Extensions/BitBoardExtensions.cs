@@ -99,55 +99,21 @@ namespace ExtraChess
             }
         }
 
-        // Assumes only 1 bit is set and line exists
+        // Assumes only 1 bit is set
         public static bool IsOnLine(this UInt64 square, UInt64 lineStart, UInt64 lineEnd)
         {
             int start = lineStart.GetLS1BIndex();
             int end = lineEnd.GetLS1BIndex();
-
-            // Horizontal line
-            int startRank = start / 8;
-            int endRank = end / 8;
-            
-            if(startRank == endRank)
-            {
-                return (Constants.Ranks[startRank] & square) != 0;
-            }
-
-            // Vertical line
-            int startFile = start % 8;
-            int endFile = end % 8;
-
-            if (startFile == endFile)
-            {
-                return (Constants.Files[startFile] & square) != 0;
-            }
-
-            // Diagonal
-            if(startRank > endRank && startFile > endFile || startRank < endRank && startFile < endFile)
-            {
-                return (Constants.DiagonalsRightBySquare[start] & square) != 0;
-            }
-            else
-            {
-                return (Constants.DiagonalsLeftBySquare[start] & square) != 0;
-            }
+            UInt64 line = Constants.LinesByCombination[start, end];
+            return line != 0 && (line & square) != 0;
         }
 
-        // Optimize: pregenerate table for all combinations with line
         public static UInt64 Between(this UInt64 s1, UInt64 s2)
         {
-            UInt64 line = Constants.Files
-                .Concat(Constants.Ranks)
-                .Concat(Constants.DiagonalsLeft)
-                .Concat(Constants.DiagonalsRight)
-                .First(l => (l & s1) != 0 && (l & s2) != 0);
-
-
             int p1 = s1.GetLS1BIndex();
             int p2 = s2.GetLS1BIndex();
 
-            UInt64 b = line & ((Constants.AllSquares << p1) ^ (Constants.AllSquares << p2));
+            UInt64 b = Constants.LinesByCombination[p1, p2] & ((Constants.AllSquares << p1) ^ (Constants.AllSquares << p2));
             return b & (b - 1); //exclude lsb
         }
 

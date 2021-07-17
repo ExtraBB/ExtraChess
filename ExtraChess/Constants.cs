@@ -117,5 +117,59 @@ namespace ExtraChess
              DiagonalsLeft[6], DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11], DiagonalsLeft[12], DiagonalsLeft[13],
              DiagonalsLeft[7], DiagonalsLeft[8], DiagonalsLeft[9], DiagonalsLeft[10], DiagonalsLeft[11], DiagonalsLeft[12], DiagonalsLeft[13], DiagonalsLeft[14],
         };
+
+        private static UInt64[,] linesByCombination = null;
+        public static UInt64[,] LinesByCombination
+        {
+            get
+            {
+                if(linesByCombination == null)
+                {
+                    UInt64[,] result = new UInt64[64, 64];
+                    for (int start = 0; start < 64; start++)
+                    {
+                        for (int end = 0; end < 64; end++)
+                        {
+                            // Horizontal line
+                            int startRank = start / 8;
+                            int endRank = end / 8;
+
+                            if (startRank == endRank)
+                            {
+                                result[start, end] = Constants.Ranks[startRank];
+                                continue;
+                            }
+
+                            // Vertical line
+                            int startFile = start % 8;
+                            int endFile = end % 8;
+
+                            if (startFile == endFile)
+                            {
+                                result[start, end] = Constants.Files[startFile];
+                                continue;
+                            }
+
+                            // Diagonals
+                            if (DiagonalsLeft[startRank + startFile] == DiagonalsLeft[endRank + endFile])
+                            {
+                                result[start, end] = DiagonalsLeft[startRank + startFile];
+                                continue;
+                            }
+
+                            if (DiagonalsRight[startRank + (7 - startFile)] == DiagonalsRight[endRank + (7 - endFile)])
+                            {
+                                result[start, end] = DiagonalsRight[startRank + (7 - startFile)];
+                                continue;
+                            }
+                            result[start, end] = 0;
+                        }
+                    }
+                    linesByCombination = result;
+                }
+
+                return linesByCombination;
+            }
+        }
     }
 }
