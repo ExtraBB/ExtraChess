@@ -9,29 +9,19 @@ namespace ExtraChess.Moves
     {
         private static UInt64[] KingMovesLookupTable;
 
-        public static List<Move> CalculateWKingMoves(Board board)
+        public static List<Move> CalculateKingMoves(Board board)
         {
             if(KingMovesLookupTable == null)
             {
                 GenerateKingMoves();
             }
-            
-            int position = board.BoardByPiece[(int)Piece.WKing].GetLS1BIndex();
-            List<Move> result = MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.White], position, Piece.WKing);
-            GetCastlingMoves(result, board, Piece.WKing);
-            return result;
-        }
 
-        public static List<Move> CalculateBKingMoves(Board board)
-        {
-            if(KingMovesLookupTable == null)
-            {
-                GenerateKingMoves();
-            }
-            
-            int position = board.BoardByPiece[(int)Piece.BKing].GetLS1BIndex();
-            List<Move> result = MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)Color.Black], position, Piece.BKing);
-            GetCastlingMoves(result, board, Piece.BKing);
+            Color color = board.State.CurrentPlayer.ToColor();
+            Piece piece = PieceType.King.ToPiece(color);
+
+            int position = board.BoardByPiece[(int)piece].GetLS1BIndex();
+            List<Move> result = MoveGenerator.GenerateMovesFromBitboard(KingMovesLookupTable[position] & ~board.BoardByColor[(int)color], position, piece);
+            GetCastlingMoves(result, board, piece);
             return result;
         }
 

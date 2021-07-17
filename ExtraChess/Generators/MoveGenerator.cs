@@ -28,25 +28,16 @@ namespace ExtraChess.Generators
             {
                 IsGenerating = true;
                 Magics.Initialize();
+
                 List<Move> result = new List<Move>(64);
-                if (board.State.CurrentPlayer == Player.Black)
-                {
-                    AddIfLegal(board, result, PawnMoves.CalculateBPawnMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateBBishopMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateBRookMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateBQueenMoves(board));
-                    AddIfLegal(board, result, KingMoves.CalculateBKingMoves(board));
-                    AddIfLegal(board, result, KnightMoves.CalculateBKnightMoves(board));
-                }
-                else if (board.State.CurrentPlayer == Player.White)
-                {
-                    AddIfLegal(board, result, PawnMoves.CalculateWPawnMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateWBishopMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateWRookMoves(board));
-                    AddIfLegal(board, result, SlidingMoves.CalculateWQueenMoves(board));
-                    AddIfLegal(board, result, KingMoves.CalculateWKingMoves(board));
-                    AddIfLegal(board, result, KnightMoves.CalculateWKnightMoves(board));
-                }
+
+                AddIfLegal(board, result, PawnMoves.CalculatePawnMoves(board));
+                AddIfLegal(board, result, SlidingMoves.CalculateBishopMoves(board));
+                AddIfLegal(board, result, SlidingMoves.CalculateRookMoves(board));
+                AddIfLegal(board, result, SlidingMoves.CalculateQueenMoves(board));
+                AddIfLegal(board, result, KingMoves.CalculateKingMoves(board));
+                AddIfLegal(board, result, KnightMoves.CalculateKnightMoves(board));
+
                 return result;
             }
             finally

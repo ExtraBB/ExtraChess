@@ -7,81 +7,47 @@ namespace ExtraChess.Moves
 {
     public static class SlidingMoves 
     {
-        public static List<Move> CalculateWBishopMoves(Board board) 
+        public static List<Move> CalculateBishopMoves(Board board) 
         {
             List<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.PositionsByPiece[Piece.WBishop])
+            Color color = board.State.CurrentPlayer.ToColor();
+            Piece piece = PieceType.Bishop.ToPiece(color);
+            foreach (int i in board.PositionsByPiece[piece])
             {
-                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WBishop));
+                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)color];
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, piece));
             }
 
             return moves;
         }
 
-        public static List<Move> CalculateBBishopMoves(Board board) 
+        public static List<Move> CalculateRookMoves(Board board) 
         {
             List<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.PositionsByPiece[Piece.BBishop])
+            Color color = board.State.CurrentPlayer.ToColor();
+            Piece piece = PieceType.Rook.ToPiece(color);
+            foreach (int i in board.PositionsByPiece[piece])
             {
-                UInt64 attacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BBishop));
+                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)color];
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, piece));
             }
 
             return moves;
         }
 
-        public static List<Move> CalculateWRookMoves(Board board) 
+        public static List<Move> CalculateQueenMoves(Board board) 
         {
             List<Move> moves = new List<Move>(32);
 
-            foreach (int i in board.PositionsByPiece[Piece.WRook])
+            Color color = board.State.CurrentPlayer.ToColor();
+            Piece piece = PieceType.Queen.ToPiece(color);
+            foreach (int i in board.PositionsByPiece[piece])
             {
-                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WRook));
-            }
-
-            return moves;
-        }
-
-        public static List<Move> CalculateBRookMoves(Board board) 
-        {
-            List<Move> moves = new List<Move>(32);
-
-            foreach (int i in board.PositionsByPiece[Piece.BRook])
-            {
-                UInt64 attacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BRook));
-            }
-
-            return moves;
-        }
-
-        public static List<Move> CalculateWQueenMoves(Board board) 
-        {
-            List<Move> moves = new List<Move>(32);
-
-            foreach (int i in board.PositionsByPiece[Piece.WQueen])
-            {
-                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
-                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.White];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.WQueen));
-            }
-
-            return moves;
-        }
-
-        public static List<Move> CalculateBQueenMoves(Board board) 
-        {
-            List<Move> moves = new List<Move>(32);
-
-            foreach (int i in board.PositionsByPiece[Piece.BQueen])
-            {
-                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
-                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)Color.Black];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, Piece.BQueen));
+                UInt64 bishopAttacks = Magics.GetBishopAttacks(board.Occupied, i) & ~board.BoardByColor[(int)color];
+                UInt64 rookAttacks = Magics.GetRookAttacks(board.Occupied, i) & ~board.BoardByColor[(int)color];
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(bishopAttacks | rookAttacks, i, piece));
             }
 
             return moves;

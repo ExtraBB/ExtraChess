@@ -6,23 +6,25 @@ namespace ExtraChess.Moves
 {
     public static class PawnMoves
     {
-        public static List<Move> CalculateWPawnMoves(Board board)
+        public static List<Move> CalculatePawnMoves(Board board)
         {
             List<Move> result = new List<Move>(32);
-            CalculateWPawnPushes(result, board);
-            CalculateWPawnCaptures(result, board);
+
+            if(board.State.CurrentPlayer == Player.White)
+            {
+                CalculateWPawnPushes(result, board);
+                CalculateWPawnCaptures(result, board);
+            }
+            else
+            {
+                CalculateBPawnPushes(result, board);
+                CalculateBPawnCaptures(result, board);
+            }
+
             return result;
         }
 
-        public static List<Move> CalculateBPawnMoves(Board board)
-        {
-            List<Move> result = new List<Move>(64);
-            CalculateBPawnPushes(result, board);
-            CalculateBPawnCaptures(result, board);
-            return result;
-        }
-
-        public static void CalculateWPawnPushes(List<Move> moves, Board board)
+        private static void CalculateWPawnPushes(List<Move> moves, Board board)
         {
             UInt64 singlePush = board.BoardByPiece[(int)Piece.WPawn].NorthOne() & ~board.Occupied;
             UInt64 doublePush = singlePush.NorthOne() & ~board.Occupied & Constants.Rank4;
@@ -49,7 +51,7 @@ namespace ExtraChess.Moves
             }
         }
 
-        public static void CalculateBPawnPushes(List<Move> moves, Board board)
+        private static void CalculateBPawnPushes(List<Move> moves, Board board)
         {
             UInt64 singlePush = board.BoardByPiece[(int)Piece.BPawn].SouthOne() & ~board.Occupied;
             UInt64 doublePush = singlePush.SouthOne() & ~board.Occupied & Constants.Rank5;
@@ -76,7 +78,7 @@ namespace ExtraChess.Moves
             }
         }
 
-        public static void CalculateWPawnCaptures(List<Move> moves, Board board)
+        private static void CalculateWPawnCaptures(List<Move> moves, Board board)
         {
             UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.AFile) << 7) & board.BoardByColor[(int)Color.Black];
             UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.WPawn] & ~Constants.HFile) << 9) & board.BoardByColor[(int)Color.Black];
@@ -137,7 +139,7 @@ namespace ExtraChess.Moves
             }
         }
 
-        public static void CalculateBPawnCaptures(List<Move> moves, Board board)
+        private static void CalculateBPawnCaptures(List<Move> moves, Board board)
         {
             UInt64 capturesWest = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.AFile) >> 9) & board.BoardByColor[(int)Color.White];
             UInt64 capturesEast = ((board.BoardByPiece[(int)Piece.BPawn] & ~Constants.HFile) >> 7) & board.BoardByColor[(int)Color.White];

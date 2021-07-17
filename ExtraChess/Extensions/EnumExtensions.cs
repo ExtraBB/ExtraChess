@@ -56,6 +56,26 @@ namespace ExtraChess
             }
         }
 
+
+        public static Piece ToPiece(this PieceType piece, Color color)
+        {
+            switch (piece)
+            {
+                case PieceType.Pawn: return color == Color.White ? Piece.WPawn : Piece.BPawn;
+                case PieceType.Queen : return color == Color.White ? Piece.WQueen : Piece.BQueen;
+                case PieceType.King : return color == Color.White ? Piece.WKing : Piece.BKing;
+                case PieceType.Bishop : return color == Color.White ? Piece.WBishop : Piece.BBishop;
+                case PieceType.Rook : return color == Color.White ? Piece.WRook : Piece.BRook;
+                case PieceType.Knight : return color == Color.White ? Piece.WKnight : Piece.BKnight;
+                default: throw new InvalidOperationException();
+            }
+        }
+
+        public static Piece ToPiece(this PieceType piece, Player player)
+        {
+            return piece.ToPiece(player.ToColor());
+        }
+
         public static Color ToColor(this Player player)
         {
             switch (player)

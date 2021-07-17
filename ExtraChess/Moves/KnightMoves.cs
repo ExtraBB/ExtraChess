@@ -9,37 +9,21 @@ namespace ExtraChess.Moves
     {
         private static UInt64[] KnightMovesLookupTable;
 
-        public static List<Move> CalculateBKnightMoves(Board board)
+        public static List<Move> CalculateKnightMoves(Board board)
         {
             if (KnightMovesLookupTable == null)
             {
                 GenerateKnightMoves();
             }
 
+            Color color = board.State.CurrentPlayer.ToColor();
+            Piece piece = PieceType.Knight.ToPiece(color);
             List<Move> moves = new List<Move>(16);
 
-            foreach (int i in board.PositionsByPiece[Piece.BKnight])
+            foreach (int i in board.PositionsByPiece[piece])
             {
-                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.Black];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.BKnight));
-            }
-
-            return moves;
-        }
-
-        public static List<Move> CalculateWKnightMoves(Board board)
-        {
-            if (KnightMovesLookupTable == null)
-            {
-                GenerateKnightMoves();
-            }
-
-            List<Move> moves = new List<Move>(16);
-
-            foreach (int i in board.PositionsByPiece[Piece.WKnight])
-            {
-                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)Color.White];
-                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, Piece.WKnight));
+                UInt64 attacks = KnightMovesLookupTable[i] & ~board.BoardByColor[(int)color];
+                moves.AddRange(MoveGenerator.GenerateMovesFromBitboard(attacks, i, piece));
             }
 
             return moves;
